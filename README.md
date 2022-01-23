@@ -1,2 +1,4 @@
 # ange
-The microservices group of stock analysis tools.
+
+株式売買をする上で, 過去のデータや新しく追加されたデータをバックエンドに流し込むなどの機能置き場.
+REST API で構成しています.
