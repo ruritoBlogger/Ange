@@ -13,7 +13,7 @@ def addIndustry(name: str) -> IndustryType:
     result = requests.post(url, json=({"props": {"name": name}}))
     industry: Industry = json.loads(result.content.decode('utf-8'))
     print("[addIndustry] result: {}".format(industry))
-    return result
+    return industry
 
 
 def getIndustryList() -> List[IndustryType]:
