@@ -1,8 +1,9 @@
 from typing_extensions import TypedDict
-from typing import List, Any, Union
+from typing import List, Any, Union, Dict
 
 
 class companyResponse(TypedDict):
+    # FIXME: 特殊なキーの管理をなんとかしたい
     zip: str
     sector: str
     fullTimeEmployees: int
@@ -14,7 +15,6 @@ class companyResponse(TypedDict):
     website: str
     maxAge: int
     address1: str
-    # TODO: str -> domainで定義されている型に変換
     industry: str
     address2: str
     ebitdaMargins: float
@@ -62,7 +62,6 @@ class companyResponse(TypedDict):
     enterpriseToRevenue: float
     beta3Year: Any
     enterpriseToEbitda: float
-    # FIXME: 特殊なキーの管理をなんとかしたい
     _52WeekChange: float
     morningStarRiskRating: Any
     forwardEps: float
@@ -84,7 +83,6 @@ class companyResponse(TypedDict):
     priceToBook: float
     heldPercentInsiders: float
     nextFiscalYearEnd: int
-    # FIXME: 特殊なキーの管理をなんとかしたい
     _yield: Any
     mostRecentQuarter: int
     shortRatio: Any
@@ -159,3 +157,13 @@ class companyResponse(TypedDict):
     regularMarketPrice: Union[int, float]
     preMarketPrice: Any
     logo_url: str
+
+
+def exportAsCompany(response: companyResponse) -> Dict[str, Union[str, int, float]]:
+    return {
+        "name": response["longName"],
+        # TODO: XXXX.T -> XXXXに変換する
+        "identificationCode": response["symbol"],
+        # TODO: companyResponseの業種情報は日本形式ではないので変換する
+        "industry": response["industry"]
+    }
