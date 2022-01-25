@@ -1,1 +1,2 @@
 from .generateIndustryData import generateIndustryData
+from .scrapingCompanyByIndustry import scrapingCompanyByIndustry
