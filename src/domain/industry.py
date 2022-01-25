@@ -1,4 +1,7 @@
 from enum import Enum
+from typing import Type, TypeVar
+
+IndustryType = TypeVar('IndustryType', bound='Industry')
 
 
 class Industry(Enum):
@@ -35,6 +38,14 @@ class Industry(Enum):
     otherFinancial = "その他金融業"
     realEstate = "不動産業"
     service = "サービス業"
+
+    @classmethod
+    def convertFromStr(cls: Type[IndustryType], target: str) -> IndustryType:
+        for industry in Industry:
+            if industry.value == target:
+                return industry
+
+        raise ValueError('{}は有効な業種ではありません'.format(target))
 
 
 # NOTE: 業種コードはスクレイピング先に依存してます
