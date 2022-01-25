@@ -1,4 +1,3 @@
-from enum import Enum
 from typing import TypeVar
 from typing_extensions import TypedDict
 
