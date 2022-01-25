@@ -1,10 +1,20 @@
 from enum import Enum
 from typing import Type, TypeVar
+from typing_extensions import TypedDict
 
-IndustryType = TypeVar('IndustryType', bound='Industry')
+
+class Industry(TypedDict):
+    # TODO: APIから得た情報をIndustry型に変換する関数を用意する
+    id: int
+    name: str
+    createdAt: str
+    updatedAt: str
 
 
-class Industry(Enum):
+IndustryNameType = TypeVar('IndustryNameType', bound='IndustryName')
+
+
+class IndustryName(Enum):
     fish = "水産・農林業"
     mining = "鉱業"
     construction = "建設業"
@@ -40,16 +50,16 @@ class Industry(Enum):
     service = "サービス業"
 
     @classmethod
-    def convertFromStr(cls: Type[IndustryType], target: str) -> IndustryType:
-        for industry in Industry:
+    def convertFromStr(cls: Type[IndustryNameType], target: str) -> IndustryNameType:
+        for industry in IndustryName:
             if industry.value == target:
                 return industry
 
-        raise ValueError('{}は有効な業種ではありません'.format(target))
+        raise ValueError('{}は有効な業種名ではありません'.format(target))
 
 
-# NOTE: 業種コードはスクレイピング先に依存してます
-class IndustryCode(Enum):
+class IndustryCodeForMyKabu(Enum):
+    # スクレイピング先にて使用されている独自の業種コード
     fish = 321
     mining = 322
     construction = 323
