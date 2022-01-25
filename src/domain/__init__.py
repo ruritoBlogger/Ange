@@ -1,2 +1,2 @@
-from companyResponse import companyResponse
-from industry import Industry, IndustryCode
+from .companyResponse import *
+from .industry import *
