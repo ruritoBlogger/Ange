@@ -25,8 +25,8 @@ def downloadCompanyList(industryList: List[Industry]) -> List[Dict[str, Union[in
     # TODO: addCompanyする際の型を定義しておく
     companyList: List[Dict[str, Union[int, str]]] = []
     for _, row in df.iterrows():
-        industryID = next((x for x in industryList if x["name"] == row["33業種区分"]), None)["id"]
-        companyList.append({"name": row["銘柄名"], "identificationCode": row["コード"], "industryID": industryID})
+        industry = next((x for x in industryList if x["name"] == row["33業種区分"]), None)
+        companyList.append({"name": row["銘柄名"], "identificationCode": row["コード"], "industryID": industry["id"]})
 
     return companyList
 
