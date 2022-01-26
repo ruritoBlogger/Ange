@@ -6,11 +6,12 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from domain import Industry, IndustryType
+from .type import addIndustryRequestType
 
 
-def addIndustry(name: str) -> IndustryType:
+def addIndustry(props: addIndustryRequestType) -> IndustryType:
     url = "http://localhost:3000/industry"
-    result = requests.post(url, json=({"props": {"name": name}}))
+    result = requests.post(url, json=({"props": props}))
     industry: Industry = json.loads(result.content.decode('utf-8'))
     print("[addIndustry] result: {}".format(industry))
     return industry
@@ -24,31 +25,5 @@ def getIndustryList() -> List[IndustryType]:
     return industryList
 
 
-def updateIndustry(id: int, name: str) -> IndustryType:
-    url = "http://localhost:3000/industry"
-    result = requests.put(url, json=({"props": {"id": id, "name": name}}))
-    industry: Industry = json.loads(result.content.decode('utf-8'))
-    print("[updateIndustry] result: {}".format(industry))
-    return industry
-
-
-def getIndustry(id: int) -> IndustryType:
-    url = "http://localhost:3000/industry/{}".format(id)
-    result = requests.get(url)
-    industry: Industry = json.loads(result.content.decode('utf-8'))
-    print("[getIndustry] result: {}".format(industry))
-    return industry
-
-
-def deleteIndustry(id: int) -> int:
-    url = "http://localhost:3000/industry/{}".format(id)
-    result = requests.delete(url)
-    industry: Industry = json.loads(result.content.decode('utf-8'))
-    print("[deleteIndustry] result: {}".format(industry))
-    return industry
-
-
 if __name__ == "__main__":
-    # addIndustry("test")
-    # getIndustry(1)
     getIndustryList()

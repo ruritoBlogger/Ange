@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Set
 import sys
 import os
 import pandas as pd
@@ -7,7 +7,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 
 from domain import Industry
-from api import addIndustry
+from api import addIndustry, addIndustryRequestType
 
 
 def generateIndustryData() -> List[Industry]:
@@ -15,14 +15,18 @@ def generateIndustryData() -> List[Industry]:
     result = requests.get(url)
     df = pd.read_excel(result.content)['33業種区分']
 
-    industrySet = set()
+    industrySet: Set[str] = set()
     for data in df:
         industrySet.add(data)
-    
+
+    # NOTE: ETFなどの業種区分が存在しないケースを考慮
     industrySet.remove('-')
+
     industryList: List[Industry] = []
     for name in industrySet:
-        industryList.append(addIndustry(name))
+        props: addIndustryRequestType = { "name" : name}
+        industryList.append(addIndustry(props))
+
     return industryList
 
 
