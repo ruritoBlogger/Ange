@@ -1,6 +1,5 @@
 from enum import Enum
 from typing import Type, TypeVar
-from typing_extensions import TypedDict
 
 
 IndustryNameType = TypeVar('IndustryNameType', bound='IndustryName')
