@@ -1,3 +1,3 @@
 from .generateIndustryData import generateIndustryData
-from .scrapingCompanyByIndustry import scrapingCompanyByIndustry
 from .generateCompanyData import generateCompanyData
+from .downloadCompanyList import downloadCompanyList
