@@ -20,4 +20,6 @@ xlrd = "*"
 python_version = "3.7"
 
 [scripts]
-dev = "flask run"
+flask = "flask run"
+industry = "python src/function/generateIndustryData.py"
+company = "python src/function/generateCompanyData.py"
