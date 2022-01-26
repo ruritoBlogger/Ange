@@ -11,6 +11,8 @@ lxml = "*"
 yfinance = "*"
 requests-html = "*"
 pandas = "*"
+openpyxl = "*"
+xlrd = "*"
 
 [dev-packages]
 
