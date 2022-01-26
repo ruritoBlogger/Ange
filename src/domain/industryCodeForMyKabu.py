@@ -1,4 +1,9 @@
 from enum import Enum
+from typing import Type, TypeVar
+from .industryName import IndustryName
+
+
+IndustryCodeForMyKabuType = TypeVar('IndustryCodeForMyKabuType', bound='IndustryCodeForMyKabu')
 
 
 class IndustryCodeForMyKabu(Enum):
@@ -36,3 +41,11 @@ class IndustryCodeForMyKabu(Enum):
     otherFinancial = 351
     realEstate = 352
     service = 353
+
+    @classmethod
+    def convertFromIndustryName(cls: Type[IndustryCodeForMyKabuType], target: IndustryName) -> IndustryCodeForMyKabuType:
+        for industryCode in IndustryCodeForMyKabu:
+            if industryCode.name == target.name:
+                return industryCode
+        
+        raise ValueError('{}は有効な業種名ではありません'.format(target.value))

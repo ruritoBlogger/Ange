@@ -4,11 +4,11 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from domain import IndustryCodeForMyKabu, companyResponse
+from domain import IndustryCodeForMyKabu
 from api import addCompany
 
 
-def scrapingCompanyByIndustry(industryID: int, industryCodeForMyKabu: IndustryCodeForMyKabu) -> companyResponse:
+def scrapingCompanyByIndustry(industryID: int, industryCodeForMyKabu: IndustryCodeForMyKabu):
     url = "https://my.kabumap.com/market/sector/{}?key=nameSector".format(industryCodeForMyKabu.value)
 
     # requests_htmlを用いたスクレイピング
