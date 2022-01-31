@@ -6,10 +6,10 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from domain import Industry, IndustryType
-from .type import addIndustryRequestType
+from .type import AddIndustryRequestType
 
 
-def addIndustry(props: addIndustryRequestType) -> IndustryType:
+def addIndustry(props: AddIndustryRequestType) -> IndustryType:
     url = "http://localhost:3000/industry"
     result = requests.post(url, json=({"props": props}))
     industry: Industry = json.loads(result.content.decode('utf-8'))

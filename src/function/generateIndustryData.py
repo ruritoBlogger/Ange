@@ -7,7 +7,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 
 from domain import Industry
-from api import addIndustry, addIndustryRequestType
+from api import addIndustry, AddIndustryRequestType
 
 
 def generateIndustryData() -> List[Industry]:
@@ -24,7 +24,7 @@ def generateIndustryData() -> List[Industry]:
 
     industryList: List[Industry] = []
     for name in industrySet:
-        props: addIndustryRequestType = { "name" : name}
+        props: AddIndustryRequestType = { "name" : name}
         industryList.append(addIndustry(props))
 
     return industryList
