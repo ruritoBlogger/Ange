@@ -8,10 +8,5 @@ class BalanceSheet(TypedDict):
     netAssets: float
     capitalStock: float
     profitSurplus: float
-    cashEquivalent: float
-    netCash: float
-    depreciation: float
-    capitalInvestment: float
-    libilities: float
     createdAt: str
     updatedAt: str

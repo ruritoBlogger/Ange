@@ -5,11 +5,11 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from domain import Industry, IndustryType
-from .type import AddIndustryRequestType
+from domain import Industry
+from api.type import AddIndustryRequestType
 
 
-def addIndustry(props: AddIndustryRequestType) -> IndustryType:
+def addIndustry(props: AddIndustryRequestType) -> Industry:
     url = "http://localhost:3000/industry"
     result = requests.post(url, json=({"props": props}))
     industry: Industry = json.loads(result.content.decode('utf-8'))
@@ -17,7 +17,7 @@ def addIndustry(props: AddIndustryRequestType) -> IndustryType:
     return industry
 
 
-def getIndustryList() -> List[IndustryType]:
+def getIndustryList() -> List[Industry]:
     url = "http://localhost:3000/industry"
     result = requests.get(url)
     industryList: List[Industry] = json.loads(result.content.decode('utf-8'))

@@ -35,9 +35,6 @@ class AddIndexRequestType(TypedDict):
     eps: float
     pcfr: float
     yieldGap: float
-    ebitda: float
-    ev: float
-    ev_ebitda: float
 
 
 class AddBalanceSheetRequestType(TypedDict):
@@ -46,8 +43,3 @@ class AddBalanceSheetRequestType(TypedDict):
     netAssets: float
     capitalStock: float
     profitSurplus: float
-    cashEquivalent: float
-    netCash: float
-    depreciation: float
-    capitalInvestment: float
-    libilities: float

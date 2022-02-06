@@ -1,14 +1,15 @@
 import requests
 import pandas as pd
-from typing import List, Dict, Union
+from typing import List
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from domain import Industry
 from api import getIndustryList
+from api.type import AddCompanyRequestType
 
-def downloadCompanyList(industryList: List[Industry]) -> List[Dict[str, Union[int, str]]]:
+def downloadCompanyList(industryList: List[Industry]) -> List[AddCompanyRequestType]:
     """JSXのサイトから企業情報が掲載されたxlsファイルを取得する
 
     その中で東証一部に上場している企業 & ETFなどを取り除いたものを取得する
@@ -22,8 +23,7 @@ def downloadCompanyList(industryList: List[Industry]) -> List[Dict[str, Union[in
     df = df[df['市場・商品区分'] == "市場第一部（内国株）"]
     df = df.drop(['日付', '市場・商品区分', '33業種コード', '17業種コード', '17業種区分', '規模コード', '規模区分'], axis=1)
 
-    # TODO: addCompanyする際の型を定義しておく
-    companyList: List[Dict[str, Union[int, str]]] = []
+    companyList: List[AddCompanyRequestType] = []
     for _, row in df.iterrows():
         industry = next((x for x in industryList if x["name"] == row["33業種区分"]), None)
         companyList.append({"name": row["銘柄名"], "identificationCode": row["コード"], "industryID": industry["id"]})

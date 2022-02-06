@@ -11,8 +11,5 @@ class Index(TypedDict):
     eps: float
     pcfr: float
     yieldGap: float
-    ebitda: float
-    ev: float
-    ev_ebitda: float
     createdAt: str
     updatedAt: str
