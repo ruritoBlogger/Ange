@@ -5,6 +5,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from downloadCompanyList import downloadCompanyList
 from api import getIndustryList, addCompany
+from api.type import AddCompanyRequestType
 from domain import Industry
 
 def generateCompanyData():
@@ -17,9 +18,9 @@ def generateCompanyData():
         raise ValueError('業種情報が登録されていません')
     
 
-    companyList: List[Dict[str, Union[int, str]]] = downloadCompanyList(industryList)
+    companyList: List[AddCompanyRequestType] = downloadCompanyList(industryList)
     for company in companyList:
-        addCompany(company["name"], company["identificationCode"], company["industryID"])
+        addCompany(company)
 
 
 

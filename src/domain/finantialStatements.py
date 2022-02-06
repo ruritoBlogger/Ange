@@ -2,6 +2,7 @@ from typing_extensions import TypedDict
 
 
 class FinantialStatements(TypedDict):
+    id: int
     companyID: int
     # TODO: JSの日付(string型) -> pythonの日付に変換する
     announcementDate: str
