@@ -49,4 +49,4 @@ class AddCashFlowRequestType(TypedDict):
     finantialID: int
     salesCF: float
     investmentCF: float
-    finantialCF: float
+    financialCF: float

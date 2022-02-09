@@ -10,6 +10,7 @@ from api.type import AddCashFlowRequestType
 
 
 def addCashFlow(companyID: int, props: AddCashFlowRequestType) -> Cashflow:
+    print(props)
     url = "http://localhost:3000/company/{}/finantial/{}/cashflow".format(companyID, props["finantialID"])
     result = requests.post(url, json=({"props": props}))
     cashflow: Cashflow = json.loads(result.content.decode('utf-8'))

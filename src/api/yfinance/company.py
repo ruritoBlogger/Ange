@@ -1,5 +1,4 @@
 from ast import Add
-from domain.balanceSheet import BalanceSheet
 import yfinance as yf
 from typing import Any, List
 import pandas as pd
@@ -8,7 +7,7 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 
-from api import AddFinantialStatementsRequstType, AddBalanceSheetRequestType
+from api import AddFinantialStatementsRequstType, AddBalanceSheetRequestType, AddCashFlowRequestType
 from domain import FinantialStatements, Company
 
 def getTickerWithYahooAPI(company: Company) -> Any:
@@ -44,6 +43,20 @@ def getCompanyBSWithTicker(ticker: Any, finantialStatements: List[FinantialState
         balanceSheet["profitSurplus"] = item["Retained Earnings"]
 
         result.append(balanceSheet)
+    
+    return result
+
+def getCompanyCFWithTicker(ticker: Any, finantialStatements: List[FinantialStatements]) -> List[AddCashFlowRequestType]:
+    df: pd.DataFrame = ticker.cashflow
+    result: List[AddCashFlowRequestType] = []
+    for date, item in df.iteritems():
+        relatedFS: FinantialStatements = next(x for x in finantialStatements if x["announcementDate"][:7] == date.strftime("%Y-%m"))
+        cashflow: AddCashFlowRequestType = { "finantialID":  relatedFS["id"]}
+        cashflow["salesCF"] = item["Change To Operating Activities"]
+        cashflow["investmentCF"] = item["Total Cashflows From Investing Activities"]
+        cashflow["financialCF"] = item["Total Cash From Financing Activities"]
+
+        result.append(cashflow)
     
     return result
 
