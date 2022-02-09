@@ -6,6 +6,6 @@ class Cashflow(TypedDict):
     finantialID: int
     salesCF: float
     investmentCF: float
-    finantialCF: float
+    financialCF: float
     createdAt: str
     updatedAt: str
