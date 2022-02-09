@@ -43,3 +43,10 @@ class AddBalanceSheetRequestType(TypedDict):
     netAssets: float
     capitalStock: float
     profitSurplus: float
+
+
+class AddCashFlowRequestType(TypedDict):
+    finantialID: int
+    salesCF: float
+    investmentCF: float
+    finantialCF: float
