@@ -7,8 +7,8 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 
-from api import AddFinantialStatementsRequstType, AddBalanceSheetRequestType, AddCashFlowRequestType, AddIncomeStatementRequestType
-from domain import FinantialStatements, Company, IncomeStatement
+from api import AddFinantialStatementsRequstType, AddBalanceSheetRequestType, AddCashFlowRequestType, AddIncomeStatementRequestType, AddIndexRequestType
+from domain import FinantialStatements, Company
 
 def getTickerWithYahooAPI(company: Company) -> Any:
     requestBody = "{}.T".format(company["identificationCode"])
@@ -46,6 +46,20 @@ def getCompanyBSWithTicker(ticker: Any, finantialStatements: List[FinantialState
     
     return result
 
+def getCompanyCFWithTicker(ticker: Any, finantialStatements: List[FinantialStatements]) -> List[AddCashFlowRequestType]:
+    df: pd.DataFrame = ticker.cashflow
+    result: List[AddCashFlowRequestType] = []
+    for date, item in df.iteritems():
+        relatedFS: FinantialStatements = next(x for x in finantialStatements if x["announcementDate"][:7] == date.strftime("%Y-%m"))
+        cashflow: AddCashFlowRequestType = { "finantialID":  relatedFS["id"]}
+        cashflow["salesCF"] = item["Change To Operating Activities"]
+        cashflow["investmentCF"] = item["Total Cashflows From Investing Activities"]
+        cashflow["financialCF"] = item["Total Cash From Financing Activities"]
+
+        result.append(cashflow)
+
+    return result
+
 def getCompanyISWithTicker(ticker: Any, finantialStatements: List[FinantialStatements]) -> List[AddIncomeStatementRequestType]:
     df: pd.DataFrame = ticker.financials
     result: List[AddIncomeStatementRequestType] = []
@@ -60,7 +74,6 @@ def getCompanyISWithTicker(ticker: Any, finantialStatements: List[FinantialState
         result.append(incomeStatement)
     
     return result
-
 
 def getCompanyFSWithYahooAPI(company: Company) -> List[AddFinantialStatementsRequstType]:
     requestBody = "{}.T".format(company["identificationCode"])
