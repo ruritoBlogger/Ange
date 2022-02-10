@@ -8,5 +8,3 @@ class IncomeStatement(TypedDict):
     operatingIncome: float
     ordinaryIncome: float
     netIncome: float
-    createdAt: str
-    updatedAt: str
