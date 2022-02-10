@@ -4,5 +4,6 @@ from .finantialStatements import *
 from .balanceSheet import *
 from .cashflow import *
 from .incomeStatement import *
+from .index import *
 from .type import *
 from .yfinance import *
