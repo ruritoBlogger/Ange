@@ -4,9 +4,9 @@ import os
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from api import yfinance, getCompanyList, addFinantialStatements, addBalanceSheet, addCashFlow
-from api.type import AddBalanceSheetRequestType, AddFinantialStatementsRequstType, AddCashFlowRequestType
-from domain import FinantialStatements, Company, BalanceSheet, Cashflow
+from api import yfinance, getCompanyList, addFinantialStatements, addBalanceSheet, addCashFlow, addIncomeStatement
+from api.type import AddBalanceSheetRequestType, AddFinantialStatementsRequstType, AddCashFlowRequestType, AddIncomeStatementRequestType
+from domain import FinantialStatements, Company, BalanceSheet, Cashflow, IncomeStatement
 
 def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]:
     companyList: List[Company] = getCompanyList()
@@ -35,7 +35,6 @@ def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]
         for bsRequest in bsRequestList:
             bs = addBalanceSheet(company['id'], bsRequest)
             bsList.append(bs)
-        """
         
         # 財務諸表データをベースにしたキャッシュ・フローデータを生成
         cfRequestList: List[AddCashFlowRequestType] = yfinance.getCompanyCFWithTicker(ticker, fsList)
@@ -43,6 +42,14 @@ def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]
         for cfRequest in cfRequestList:
             cf = addCashFlow(company['id'], cfRequest)
             cfList.append(cf)
+        """
+
+        # 財務諸表データをベースにした損益計算書データを生成
+        isRequestList: List[AddIncomeStatementRequestType] = yfinance.getCompanyISWithTicker(ticker, fsList)
+        isList: List[IncomeStatement] = []
+        for isRequest in isRequestList:
+            istatement = addIncomeStatement(company['id'], isRequest)
+            isList.append(istatement)
         
         break
 
