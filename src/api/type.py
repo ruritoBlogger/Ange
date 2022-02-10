@@ -50,3 +50,15 @@ class AddCashFlowRequestType(TypedDict):
     salesCF: float
     investmentCF: float
     financialCF: float
+
+
+class AddIndexRequestType(TypedDict):
+    finantialID: int
+    capitalAdequacyRatio: float
+    roe: float
+    roa: float
+    per: float
+    pbr: float
+    eps: float
+    pcfr: float
+    yieldGap: float
