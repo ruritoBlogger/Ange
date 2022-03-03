@@ -5,5 +5,6 @@ from .balanceSheet import *
 from .cashflow import *
 from .incomeStatement import *
 from .index import *
+from .stockPrice import *
 from .type import *
 from .yfinance import *
