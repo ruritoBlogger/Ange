@@ -62,3 +62,12 @@ class AddIndexRequestType(TypedDict):
     eps: float
     pcfr: float
     yieldGap: float
+
+
+class AddStockPriceRequestType(TypedDict):
+    companyID: int
+    openingPrice: float
+    closingPrice: float
+    highPrice: float
+    lowPrice: float
+    date: str
