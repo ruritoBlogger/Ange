@@ -7,8 +7,11 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 
-from api import AddFinantialStatementsRequstType, AddBalanceSheetRequestType, AddCashFlowRequestType, AddIncomeStatementRequestType, AddIndexRequestType
+from api import AddFinantialStatementsRequstType, AddBalanceSheetRequestType, AddCashFlowRequestType, AddIncomeStatementRequestType, AddIndexRequestType, AddStockPriceRequestType
 from domain import FinantialStatements, Company
+
+def convertDate(target: str) -> str:
+    return target.strftime("%Y/%m/%d")
 
 def getTickerWithYahooAPI(company: Company) -> Any:
     requestBody = "{}.T".format(company["identificationCode"])
@@ -20,7 +23,7 @@ def getCompanyDateWithTicker(ticker: Any) -> List[str]:
     df: pd.DataFrame = ticker.balance_sheet
     dateList: List[str] = []
     for date, _ in df.iteritems():
-        dateList.append(date.strftime("%Y/%m/%d"))
+        dateList.append(convertDate(date))
 
     return dateList
 
@@ -28,7 +31,7 @@ def getCompanyQuarterlyDateWithTicker(ticker: Any) -> List[str]:
     df: pd.DataFrame = ticker.quarterly_balance_sheet
     dateList: List[str] = []
     for date, _ in df.iteritems():
-        dateList.append(date.strftime("%Y/%m/%d"))
+        dateList.append(convertDate(date))
     
 
 def getCompanyBSWithTicker(ticker: Any, finantialStatements: List[FinantialStatements]) -> List[AddBalanceSheetRequestType]:
@@ -75,6 +78,20 @@ def getCompanyISWithTicker(ticker: Any, finantialStatements: List[FinantialState
     
     return result
 
+def getCompanyStockPriceWithTicker(ticker: Any, company: Company) -> List[AddStockPriceRequestType]: 
+    df: pd.DataFrame = ticker.history(period="max")
+    result: List[AddStockPriceRequestType] = []
+    for date, item in df.iterrows():
+        stockPrice: AddStockPriceRequestType = { "companyID": company["id"]}
+        stockPrice["openingPrice"] = item["Open"]
+        stockPrice["closingPrice"] = item["Close"]
+        stockPrice["highPrice"] = item["High"]
+        stockPrice["lowPrice"] = item["Low"]
+        stockPrice["date"] = convertDate(date)
+        result.append(stockPrice)
+    
+    return result
+
 def getCompanyFSWithYahooAPI(company: Company) -> List[AddFinantialStatementsRequstType]:
     requestBody = "{}.T".format(company["identificationCode"])
     response = yf.Ticker(requestBody)
@@ -82,8 +99,7 @@ def getCompanyFSWithYahooAPI(company: Company) -> List[AddFinantialStatementsReq
     result: List[AddFinantialStatementsRequstType] = []
     df: pd.DataFrame = response.financials
     for date, _ in df.iteritems():
-        convertedDate = date.strftime("%Y/%m/%d")
-        finantialStatements: AddFinantialStatementsRequstType = { "companyID": company["id"], "announcementDate": convertedDate, "isFiscal": True }
+        finantialStatements: AddFinantialStatementsRequstType = { "companyID": company["id"], "announcementDate": convertDate(date), "isFiscal": True }
         result.append(finantialStatements)
 
     return result

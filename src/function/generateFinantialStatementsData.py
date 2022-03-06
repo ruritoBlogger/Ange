@@ -1,17 +1,17 @@
-from typing import Any, List, Tuple
+from typing import Any, List, Tuple, Optional
 import sys
 import os
 
+from src.domain.stockPrice import StockPrice
+
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from api import yfinance, getCompanyList, addFinantialStatements, addBalanceSheet, addCashFlow, addIncomeStatement, addIndex
-from api.type import AddBalanceSheetRequestType, AddFinantialStatementsRequstType, AddCashFlowRequestType, AddIncomeStatementRequestType, AddIndexRequestType
+from api import yfinance, getCompanyList, addFinantialStatements, addBalanceSheet, addCashFlow, addIncomeStatement, addIndex, addPrice
+from api.type import AddBalanceSheetRequestType, AddFinantialStatementsRequstType, AddCashFlowRequestType, AddIncomeStatementRequestType, AddIndexRequestType, AddStockPriceRequestType
 from domain import FinantialStatements, Company, BalanceSheet, Cashflow, IncomeStatement, Index
 
 
-# TODO: 株価データを扱えるようになったら実装する
-"""
-def calcIndex(ticker, Any, fsList: List[FinantialStatements], bsList: List[BalanceSheet], cfList: List[Cashflow], isList: List[IncomeStatement]) -> List[AddIndexRequestType]:
+def calcIndex(ticker, Any, spList: List[StockPrice], fsList: List[FinantialStatements], bsList: List[BalanceSheet], cfList: List[Cashflow], isList: List[IncomeStatement]) -> List[AddIndexRequestType]:
     listLen = len(fsList)
 
     indexRequestList: List[AddIndexRequestType] = []
@@ -20,7 +20,18 @@ def calcIndex(ticker, Any, fsList: List[FinantialStatements], bsList: List[Balan
         indexRequest['capitalAdequacyRatio'] = bsList[i]['netAssets'] / bsList[i]['totalAssets']
         indexRequest['roe'] = isList[i]['netIncome'] / bsList[i]['netAssets'] * 100
         indexRequest['roa'] = isList[i]['netIncome'] / bsList[i]['totalAssets'] * 100
-"""
+
+        # FIXME: 邪悪 + 決算日の日付を取得して直す
+        relatedSP: StockPrice = next(x for x in spList if x['date'] == fsList[i]['announcementDate'].strftime("%Y/%m/1"))
+        # TODO: 株の発行部数を取得しておく
+        # TODO: PCFRを削除する
+        # TODO: yieldGapを削除する
+        """
+        indexRequest['eps'] = 発行部数 / isList[i]['netIncome']
+        indexRequest['per'] = relatedSP["ClosingPrice"] * indexRequest['eps']
+        indexRequest['pbr'] = relatedSP["ClosingPrice"] * 発行部数 / bsList[i]['netAssets']
+        """
+
 
 
 def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]:
@@ -35,6 +46,13 @@ def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]
     for company in companyList:
         ticker: Any = yfinance.getTickerWithYahooAPI(company)
         dateList: List[str] = yfinance.getCompanyDateWithTicker(ticker)
+
+        # 株価データを生成
+        spList: List[StockPrice] = []
+        spRequestList: List[AddStockPriceRequestType] = yfinance.getCompanyStockPriceWithTicker(ticker, company)
+        for spRequest in spRequestList:
+            sp = addPrice(spRequest)
+            spList.append(sp)
 
         # 各表のベースとなる財務諸表データを生成
         fsList: List[FinantialStatements] = []
@@ -63,15 +81,12 @@ def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]
             istatement = addIncomeStatement(company['id'], isRequest)
             isList.append(istatement)
 
-        # TODO: 株価データを取り扱えるようになったら実装する
-        """
         # 財務諸表データをベースにした指標データを生成
-        indexRequestList: List[AddIndexRequestType] = calcIndex(fsList, bsList, cfList, isList)
+        indexRequestList: List[AddIndexRequestType] = calcIndex(spList, fsList, bsList, cfList, isList)
         indexList: List[Index] = []
         for indexRequest in indexRequestList:
             index = addIndex(company['id'], indexRequest)
             indexList.append(index)
-        """
         
         break
 
