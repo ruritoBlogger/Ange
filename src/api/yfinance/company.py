@@ -1,6 +1,6 @@
-from ast import Add
+from re import S
 import yfinance as yf
-from typing import Any, List
+from typing import Any, List, Dict
 import pandas as pd
 import sys
 import os
@@ -91,6 +91,35 @@ def getCompanyStockPriceWithTicker(ticker: Any, company: Company) -> List[AddSto
         result.append(stockPrice)
     
     return result
+
+def getCompanyStockAmountWithTicker(ticker: Any, dateList: List[str]) -> List[Dict[str, int]]:
+    """現在の株式数及び分割情報を用いて過去の株式数を算出し返却する
+    
+
+    Args:
+        ticker (Any): yfinance周りの情報を保持しているオブジェクト
+        dateList (List[str]): 取得したい過去の年月
+
+    Returns:
+        List[Dict[str, int]]: 過去の年月をキーに株式数をデータに割り当てた辞書
+            {
+                "YYYY/mm": "stock amount(number)",
+                "YYYY/mm": "stock amout(number)",
+            }
+    """
+
+    currentStockAmount: int = ticker.info["sharesOutstanding"]
+    stockAmountData: List[Dict[str, int]] = []
+
+    splitData: pd.DataFrame = ticker.splits
+    for splitDate, splitRate in splitData.iteritems():
+        for targetDate in dateList:
+            # FIXME: 終わり
+            if splitDate.strftime("%Y") > targetDate[:4] or (splitDate.strftime("%Y") == targetDate[:4] and int(splitDate.strftime("%m")) >= int(targetDate[5:])):
+                currentStockAmount = currentStockAmount / splitRate
+            stockAmountData.append({targetDate: currentStockAmount})
+    
+    return stockAmountData
 
 def getCompanyFSWithYahooAPI(company: Company) -> List[AddFinantialStatementsRequstType]:
     requestBody = "{}.T".format(company["identificationCode"])
