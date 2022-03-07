@@ -1,14 +1,13 @@
-from typing import Any, List, Tuple, Optional
+from typing import Any, List, Tuple
 import sys
 import os
-
-from src.domain.stockPrice import StockPrice
+import pandas as pd
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from api import yfinance, getCompanyList, addFinantialStatements, addBalanceSheet, addCashFlow, addIncomeStatement, addIndex, addPrice
 from api.type import AddBalanceSheetRequestType, AddFinantialStatementsRequstType, AddCashFlowRequestType, AddIncomeStatementRequestType, AddIndexRequestType, AddStockPriceRequestType
-from domain import FinantialStatements, Company, BalanceSheet, Cashflow, IncomeStatement, Index
+from domain import FinantialStatements, Company, BalanceSheet, Cashflow, IncomeStatement, Index, StockPrice
 
 
 def calcIndex(ticker, Any, spList: List[StockPrice], fsList: List[FinantialStatements], bsList: List[BalanceSheet], cfList: List[Cashflow], isList: List[IncomeStatement]) -> List[AddIndexRequestType]:
@@ -46,6 +45,14 @@ def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]
     for company in companyList:
         ticker: Any = yfinance.getTickerWithYahooAPI(company)
         dateList: List[str] = yfinance.getCompanyDateWithTicker(ticker)
+
+        print(yfinance.getCompanyStockAmountWithTicker(ticker, ["2021/3", "2020/3", "2019/3", "2016/11", "2016/3", "2010/3"]))
+        break
+        splitData: pd.DataFrame = ticker.splits
+        for date, rate in splitData.iteritems():
+            print(date, rate)
+        break
+
 
         # 株価データを生成
         spList: List[StockPrice] = []
