@@ -43,6 +43,7 @@ class AddBalanceSheetRequestType(TypedDict):
     netAssets: float
     capitalStock: float
     profitSurplus: float
+    printedNum: int
 
 
 class AddCashFlowRequestType(TypedDict):
