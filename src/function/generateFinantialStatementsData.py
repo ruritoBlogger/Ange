@@ -1,7 +1,7 @@
-from typing import Any, List, Tuple
+from typing import Any, List, Tuple, Dict
 import sys
 import os
-import pandas as pd
+import time
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
@@ -46,20 +46,17 @@ def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]
         ticker: Any = yfinance.getTickerWithYahooAPI(company)
         dateList: List[str] = yfinance.getCompanyDateWithTicker(ticker)
 
-        print(yfinance.getCompanyStockAmountWithTicker(ticker, ["2021/3", "2020/3", "2019/3", "2016/11", "2016/3", "2010/3"]))
-        break
-        splitData: pd.DataFrame = ticker.splits
-        for date, rate in splitData.iteritems():
-            print(date, rate)
-        break
+        stockAmountList: List[Dict[str, int]] = yfinance.getCompanyStockAmountWithTicker(ticker, dateList)
 
 
+        """
         # 株価データを生成
         spList: List[StockPrice] = []
         spRequestList: List[AddStockPriceRequestType] = yfinance.getCompanyStockPriceWithTicker(ticker, company)
         for spRequest in spRequestList:
             sp = addPrice(spRequest)
             spList.append(sp)
+        """
 
         # 各表のベースとなる財務諸表データを生成
         fsList: List[FinantialStatements] = []
@@ -68,11 +65,13 @@ def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]
             fsList.append(fs)
         
         # 財務諸表データをベースにしたバランスシートデータを生成
-        bsRequestList: List[AddBalanceSheetRequestType] = yfinance.getCompanyBSWithTicker(ticker, fsList)
+        bsRequestList: List[AddBalanceSheetRequestType] = yfinance.getCompanyBSWithTicker(ticker, fsList, stockAmountList)
         bsList: List[BalanceSheet] = []
         for bsRequest in bsRequestList:
             bs = addBalanceSheet(company['id'], bsRequest)
             bsList.append(bs)
+        
+        break
         
         # 財務諸表データをベースにしたキャッシュ・フローデータを生成
         cfRequestList: List[AddCashFlowRequestType] = yfinance.getCompanyCFWithTicker(ticker, fsList)

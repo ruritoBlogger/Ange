@@ -8,5 +8,6 @@ class BalanceSheet(TypedDict):
     netAssets: float
     capitalStock: float
     profitSurplus: float
+    printedNum: int
     createdAt: str
     updatedAt: str

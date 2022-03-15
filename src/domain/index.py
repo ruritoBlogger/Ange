@@ -9,7 +9,5 @@ class Index(TypedDict):
     per: float
     pbr: float
     eps: float
-    pcfr: float
-    yieldGap: float
     createdAt: str
     updatedAt: str

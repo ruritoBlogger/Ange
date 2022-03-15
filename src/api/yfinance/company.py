@@ -1,9 +1,12 @@
 from re import S
 import yfinance as yf
-from typing import Any, List, Dict
+from typing import Any, List, Dict, Optional
+from requests.exceptions import ConnectionError
 import pandas as pd
 import sys
 import os
+import time
+from datetime import datetime, timedelta
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 
@@ -15,12 +18,24 @@ def convertDate(target: str) -> str:
 
 def getTickerWithYahooAPI(company: Company) -> Any:
     requestBody = "{}.T".format(company["identificationCode"])
-    ticker = yf.Ticker(requestBody)
+    try:
+        ticker = yf.Ticker(requestBody)
+    except ConnectionError:
+        print("yfinanceのAPIサーバーにアクセスが集中しているため一時休止します(10秒)")
+        time.sleep(10)
+        return getTickerWithYahooAPI(company)
+
     return ticker
 
 
 def getCompanyDateWithTicker(ticker: Any) -> List[str]:
-    df: pd.DataFrame = ticker.balance_sheet
+    try:
+        df: pd.DataFrame = ticker.balance_sheet
+    except ConnectionError:
+        print("yfinanceのAPIサーバーにアクセスが集中しているため一時休止します(10秒)")
+        time.sleep(10)
+        return getCompanyDateWithTicker(ticker)
+
     dateList: List[str] = []
     for date, _ in df.iteritems():
         dateList.append(convertDate(date))
@@ -28,14 +43,26 @@ def getCompanyDateWithTicker(ticker: Any) -> List[str]:
     return dateList
 
 def getCompanyQuarterlyDateWithTicker(ticker: Any) -> List[str]:
-    df: pd.DataFrame = ticker.quarterly_balance_sheet
+    try:
+        df: pd.DataFrame = ticker.quarterly_balance_sheet
+    except ConnectionError:
+        print("yfinanceのAPIサーバーにアクセスが集中しているため一時休止します(10秒)")
+        time.sleep(10)
+        return getCompanyQuarterlyDateWithTicker(ticker)
+
     dateList: List[str] = []
     for date, _ in df.iteritems():
         dateList.append(convertDate(date))
     
 
-def getCompanyBSWithTicker(ticker: Any, finantialStatements: List[FinantialStatements]) -> List[AddBalanceSheetRequestType]:
-    df: pd.DataFrame = ticker.balance_sheet
+def getCompanyBSWithTicker(ticker: Any, finantialStatements: List[FinantialStatements], stockAmountList: List[Dict[str, int]]) -> List[AddBalanceSheetRequestType]:
+    try:
+        df: pd.DataFrame = ticker.balance_sheet
+    except ConnectionError:
+        print("yfinanceのAPIサーバーにアクセスが集中しているため一時休止します(10秒)")
+        time.sleep(10)
+        return getCompanyBSWithTicker(ticker, finantialStatements, stockAmountList)
+
     result: List[AddBalanceSheetRequestType] = []
     for date, item in df.iteritems():
         relatedFS: FinantialStatements = next(x for x in finantialStatements if x["announcementDate"][:7] == date.strftime("%Y-%m"))
@@ -45,12 +72,30 @@ def getCompanyBSWithTicker(ticker: Any, finantialStatements: List[FinantialState
         balanceSheet["capitalStock"] = item["Common Stock"]
         balanceSheet["profitSurplus"] = item["Retained Earnings"]
 
+        searchKey = datetime.strptime(relatedFS["announcementDate"][:10].replace("-", "/"), "%Y/%m/%d")
+        # FIXME: 本当はタイムゾーンの情報から計算すべきだが、ダルいのでゴリ押した
+        searchKey += timedelta(days=1)
+        print(searchKey.strftime("%Y/%m/%d"), stockAmountList)
+
+        balanceSheet["printedNum"] = None
+        for stockAmount in stockAmountList:
+            if searchKey.strftime("%Y/%m/%d") in stockAmount:
+                balanceSheet["printedNum"] = stockAmount[searchKey.strftime("%Y/%m/%d")]
+                break
+
+        print(balanceSheet)
         result.append(balanceSheet)
     
     return result
 
 def getCompanyCFWithTicker(ticker: Any, finantialStatements: List[FinantialStatements]) -> List[AddCashFlowRequestType]:
-    df: pd.DataFrame = ticker.cashflow
+    try:
+        df: pd.DataFrame = ticker.cashflow
+    except ConnectionError:
+        print("yfinanceのAPIサーバーにアクセスが集中しているため一時休止します(10秒)")
+        time.sleep(10)
+        return getCompanyCFWithTicker(ticker, finantialStatements)
+
     result: List[AddCashFlowRequestType] = []
     for date, item in df.iteritems():
         relatedFS: FinantialStatements = next(x for x in finantialStatements if x["announcementDate"][:7] == date.strftime("%Y-%m"))
@@ -64,7 +109,13 @@ def getCompanyCFWithTicker(ticker: Any, finantialStatements: List[FinantialState
     return result
 
 def getCompanyISWithTicker(ticker: Any, finantialStatements: List[FinantialStatements]) -> List[AddIncomeStatementRequestType]:
-    df: pd.DataFrame = ticker.financials
+    try:
+        df: pd.DataFrame = ticker.financials
+    except ConnectionError:
+        print("yfinanceのAPIサーバーにアクセスが集中しているため一時休止します(10秒)")
+        time.sleep(10)
+        return getCompanyISWithTicker(ticker, finantialStatements)
+
     result: List[AddIncomeStatementRequestType] = []
     for date, item in df.iteritems():
         relatedFS: FinantialStatements = next(x for x in finantialStatements if x["announcementDate"][:7] == date.strftime("%Y-%m"))
@@ -79,7 +130,13 @@ def getCompanyISWithTicker(ticker: Any, finantialStatements: List[FinantialState
     return result
 
 def getCompanyStockPriceWithTicker(ticker: Any, company: Company) -> List[AddStockPriceRequestType]: 
-    df: pd.DataFrame = ticker.history(period="max")
+    try:
+        df: pd.DataFrame = ticker.history(period="max")
+    except ConnectionError:
+        print("yfinanceのAPIサーバーにアクセスが集中しているため一時休止します(10秒)")
+        time.sleep(10)
+        return getCompanyStockPriceWithTicker(ticker, company)
+
     result: List[AddStockPriceRequestType] = []
     for date, item in df.iterrows():
         stockPrice: AddStockPriceRequestType = { "companyID": company["id"]}
@@ -92,7 +149,7 @@ def getCompanyStockPriceWithTicker(ticker: Any, company: Company) -> List[AddSto
     
     return result
 
-def getCompanyStockAmountWithTicker(ticker: Any, dateList: List[str]) -> List[Dict[str, int]]:
+def getCompanyStockAmountWithTicker(ticker: Any, dateList: List[str], cache: Optional[int] = None) -> List[Dict[str, int]]:
     """現在の株式数及び分割情報を用いて過去の株式数を算出し返却する
     
 
@@ -108,15 +165,30 @@ def getCompanyStockAmountWithTicker(ticker: Any, dateList: List[str]) -> List[Di
             }
     """
 
-    currentStockAmount: int = ticker.info["sharesOutstanding"]
+    # NOTE: 1回目のAPIアクセスに既に成功している場合 == cacheの中身に欲しい情報が格納済み
+    if cache == None:
+        try:
+            currentStockAmount: int = ticker.info["sharesOutstanding"]
+        except ConnectionError:
+            print("yfinanceのAPIサーバーにアクセスが集中しているため一時休止します(10秒)")
+            time.sleep(10)
+            return getCompanyStockAmountWithTicker(ticker, dateList)
+
+    try:
+        splitData: pd.DataFrame = ticker.splits
+    except ConnectionError:
+            print("yfinanceのAPIサーバーにアクセスが集中しているため一時休止します(10秒)")
+            time.sleep(10)
+            return getCompanyStockAmountWithTicker(ticker, dateList, currentStockAmount)
+
     stockAmountData: List[Dict[str, int]] = []
 
-    splitData: pd.DataFrame = ticker.splits
     for splitDate, splitRate in splitData.iteritems():
         for targetDate in dateList:
             # FIXME: 終わり
             if splitDate.strftime("%Y") > targetDate[:4] or (splitDate.strftime("%Y") == targetDate[:4] and int(splitDate.strftime("%m")) >= int(targetDate[5:])):
                 currentStockAmount = currentStockAmount / splitRate
+            
             stockAmountData.append({targetDate: currentStockAmount})
     
     return stockAmountData
