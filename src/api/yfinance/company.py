@@ -6,12 +6,12 @@ import pandas as pd
 import sys
 import os
 import time
-from datetime import datetime, timedelta
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 
 from api import AddFinantialStatementsRequstType, AddBalanceSheetRequestType, AddCashFlowRequestType, AddIncomeStatementRequestType, AddIndexRequestType, AddStockPriceRequestType
 from domain import FinantialStatements, Company
+from util import convertDateFromJS
 
 def convertDate(target: str) -> str:
     return target.strftime("%Y/%m/%d")
@@ -72,10 +72,15 @@ def getCompanyBSWithTicker(ticker: Any, finantialStatements: List[FinantialState
         balanceSheet["capitalStock"] = item["Common Stock"]
         balanceSheet["profitSurplus"] = item["Retained Earnings"]
 
-        searchKey = datetime.strptime(relatedFS["announcementDate"][:10].replace("-", "/"), "%Y/%m/%d")
-        # FIXME: 本当はタイムゾーンの情報から計算すべきだが、ダルいのでゴリ押した
-        searchKey += timedelta(days=1)
-        print(searchKey.strftime("%Y/%m/%d"), stockAmountList)
+        """
+        stockAmountListという以下のような株式発行数の情報のうち
+        連動している財務諸表に登録されている日付と合致するキーの株式発行数を["printedNum"]に登録する
+
+        {
+            "日付": "発行数"
+        }
+        """    
+        searchKey = convertDateFromJS(relatedFS["announcementDate"])
 
         balanceSheet["printedNum"] = None
         for stockAmount in stockAmountList:
@@ -83,7 +88,6 @@ def getCompanyBSWithTicker(ticker: Any, finantialStatements: List[FinantialState
                 balanceSheet["printedNum"] = stockAmount[searchKey.strftime("%Y/%m/%d")]
                 break
 
-        print(balanceSheet)
         result.append(balanceSheet)
     
     return result
