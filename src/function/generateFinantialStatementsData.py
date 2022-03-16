@@ -1,16 +1,35 @@
-from typing import Any, List, Tuple, Dict
+from typing import Any, List, Tuple, Dict, Optional
 import sys
 import os
-import time
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from api import yfinance, getCompanyList, addFinantialStatements, addBalanceSheet, addCashFlow, addIncomeStatement, addIndex, addPrice
 from api.type import AddBalanceSheetRequestType, AddFinantialStatementsRequstType, AddCashFlowRequestType, AddIncomeStatementRequestType, AddIndexRequestType, AddStockPriceRequestType
 from domain import FinantialStatements, Company, BalanceSheet, Cashflow, IncomeStatement, Index, StockPrice
+from util import convertDateFromJS
 
+def choiceStockPriceWithAnnouncementDate(announcementDate: str, spList: List[StockPrice]) -> Optional[StockPrice]:
+    """決算日から一番近い && 決算日以降の日付の株情報を取得する
 
-def calcIndex(ticker, Any, spList: List[StockPrice], fsList: List[FinantialStatements], bsList: List[BalanceSheet], cfList: List[Cashflow], isList: List[IncomeStatement]) -> List[AddIndexRequestType]:
+    Args:
+        announcementDate (str): 決算日の情報
+        spList (List[StockPrice]): 株価情報
+
+    Returns:
+        Optional[StockPrice]: 条件に該当する株価情報があればそれを、無ければNoneを返す
+    """
+
+    announcementDate = convertDateFromJS(announcementDate)
+
+    for stockPrice in spList:
+        priceDate = convertDateFromJS(stockPrice['date'])
+        if announcementDate <= priceDate:
+            return stockPrice
+
+    return None
+
+def calcIndex(spList: List[StockPrice], fsList: List[FinantialStatements], bsList: List[BalanceSheet], cfList: List[Cashflow], isList: List[IncomeStatement]) -> List[AddIndexRequestType]:
     listLen = len(fsList)
 
     indexRequestList: List[AddIndexRequestType] = []
@@ -20,17 +39,14 @@ def calcIndex(ticker, Any, spList: List[StockPrice], fsList: List[FinantialState
         indexRequest['roe'] = isList[i]['netIncome'] / bsList[i]['netAssets'] * 100
         indexRequest['roa'] = isList[i]['netIncome'] / bsList[i]['totalAssets'] * 100
 
-        # FIXME: 邪悪 + 決算日の日付を取得して直す
-        relatedSP: StockPrice = next(x for x in spList if x['date'] == fsList[i]['announcementDate'].strftime("%Y/%m/1"))
-        # TODO: 株の発行部数を取得しておく
-        # TODO: PCFRを削除する
-        # TODO: yieldGapを削除する
-        """
-        indexRequest['eps'] = 発行部数 / isList[i]['netIncome']
-        indexRequest['per'] = relatedSP["ClosingPrice"] * indexRequest['eps']
-        indexRequest['pbr'] = relatedSP["ClosingPrice"] * 発行部数 / bsList[i]['netAssets']
-        """
+        relatedSP: StockPrice = choiceStockPriceWithAnnouncementDate(fsList[i]['announcementDate'], spList)
+        indexRequest['eps'] = bsList[i]['printedNum'] / isList[i]['netIncome']
+        indexRequest['per'] = relatedSP['closingPrice'] * indexRequest['eps']
+        indexRequest['pbr'] = relatedSP['closingPrice'] * bsList[i]['printedNum'] / bsList[i]['netAssets']
 
+        indexRequestList.append(indexRequest)
+    
+    return indexRequestList
 
 
 def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]:
@@ -49,14 +65,12 @@ def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]
         stockAmountList: List[Dict[str, int]] = yfinance.getCompanyStockAmountWithTicker(ticker, dateList)
 
 
-        """
         # 株価データを生成
         spList: List[StockPrice] = []
         spRequestList: List[AddStockPriceRequestType] = yfinance.getCompanyStockPriceWithTicker(ticker, company)
         for spRequest in spRequestList:
             sp = addPrice(spRequest)
             spList.append(sp)
-        """
 
         # 各表のベースとなる財務諸表データを生成
         fsList: List[FinantialStatements] = []
@@ -70,8 +84,6 @@ def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]
         for bsRequest in bsRequestList:
             bs = addBalanceSheet(company['id'], bsRequest)
             bsList.append(bs)
-        
-        break
         
         # 財務諸表データをベースにしたキャッシュ・フローデータを生成
         cfRequestList: List[AddCashFlowRequestType] = yfinance.getCompanyCFWithTicker(ticker, fsList)
