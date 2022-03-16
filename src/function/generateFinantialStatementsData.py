@@ -1,6 +1,7 @@
 from typing import Any, List, Tuple, Dict, Optional
 import sys
 import os
+from tqdm import tqdm
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
@@ -51,6 +52,8 @@ def calcIndex(spList: List[StockPrice], fsList: List[FinantialStatements], bsLis
 
 def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]:
     companyList: List[Company] = getCompanyList()
+    companyListBar = tqdm(total = len(companyList))
+    companyListBar.set_description('東証一部に上場している企業情報を生成中')
 
     if type(companyList) is not list:
         raise ValueError('企業情報の取得に失敗しました')
@@ -66,11 +69,16 @@ def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]
 
 
         # 株価データを生成
+
         spList: List[StockPrice] = []
         spRequestList: List[AddStockPriceRequestType] = yfinance.getCompanyStockPriceWithTicker(ticker, company)
+
+        stockPriceBar = tqdm(total = len(spRequestList))
+        stockPriceBar.set_description("{}の株価情報を登録中".format(company['name']))
         for spRequest in spRequestList:
             sp = addPrice(spRequest)
             spList.append(sp)
+            stockPriceBar.update(1)
 
         # 各表のベースとなる財務諸表データを生成
         fsList: List[FinantialStatements] = []
@@ -106,7 +114,7 @@ def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]
             index = addIndex(company['id'], indexRequest)
             indexList.append(index)
         
-        break
+        companyListBar.update(1)
 
 
 
