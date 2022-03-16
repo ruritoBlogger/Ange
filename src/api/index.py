@@ -9,26 +9,29 @@ from domain import Index
 from api.type import AddIndexRequestType
 
 
-def addIndex(companyID: int, props: AddIndexRequestType) -> Index:
+def addIndex(companyID: int, props: AddIndexRequestType, isPrintLog: bool = False) -> Index:
     url = "http://localhost:3000/company/{}/finantial/{}/index".format(companyID, props["finantialID"])
     result = requests.post(url, json=({"props": props}))
     index: Index = json.loads(result.content.decode('utf-8'))
-    print("[addIndex] result: {}".format(index))
+    if isPrintLog:
+        print("[addIndex] result: {}".format(index))
     return index
 
-def getIndexList(companyID: int, finantialID: int) -> List[Index]:
+def getIndexList(companyID: int, finantialID: int, isPrintLog: bool = False) -> List[Index]:
     url = "http://localhost:3000/company/{}/finantial/{}/index".format(companyID, finantialID)
     result = requests.get(url)
     indexList: List[Index] = json.loads(result.content.decode('utf-8'))
-    print("[getIndexList] result: {}".format(indexList))
+    if isPrintLog:
+        print("[getIndexList] result: {}".format(indexList))
     return indexList
 
 
-def getIndex(companyID: int, finantialID: int, indexID: int) -> Index:
+def getIndex(companyID: int, finantialID: int, indexID: int, isPrintLog: bool = False) -> Index:
     url = "http://localhost:3000/company/{}/finantial/{}/index/{}".format(companyID, finantialID, indexID)
     result = requests.get(url)
     index: Index = json.loads(result.content.decode('utf-8'))
-    print("[getIndex] result: {}".format(index))
+    if isPrintLog:
+        print("[getIndex] result: {}".format(index))
     return index
 
 

@@ -9,26 +9,29 @@ from domain import Company
 from api.type import AddCompanyRequestType
 
 
-def addCompany(props: AddCompanyRequestType) -> Company:
+def addCompany(props: AddCompanyRequestType, isPrintLog: bool = False) -> Company:
     url = "http://localhost:3000/company"
     result = requests.post(url, json=({"props": props}))
     company: Company = json.loads(result.content.decode('utf-8'))
-    print("[addCompany] result: {}".format(company))
+    if isPrintLog:
+        print("[addCompany] result: {}".format(company))
     return company
 
-def getCompanyList() -> List[Company]:
+def getCompanyList(isPrintLog: bool = False) -> List[Company]:
     url = "http://localhost:3000/company"
     result = requests.get(url)
     companyList: List[Company] = json.loads(result.content.decode('utf-8'))
-    print("[getCompanyList] result: {}".format(companyList))
+    if isPrintLog:
+        print("[getCompanyList] result: {}".format(companyList))
     return companyList
 
 
-def getCompany(id: int) -> Company:
+def getCompany(id: int, isPrintLog: bool = False) -> Company:
     url = "http://localhost:3000/company/{}".format(id)
     result = requests.get(url)
     company: Company = json.loads(result.content.decode('utf-8'))
-    print("[getCompany] result: {}".format(company))
+    if isPrintLog:
+        print("[getCompany] result: {}".format(company))
     return company
 
 

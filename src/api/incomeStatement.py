@@ -9,27 +9,30 @@ from domain import IncomeStatement
 from api.type import AddIncomeStatementRequestType
 
 
-def addIncomeStatement(companyID: int, props: AddIncomeStatementRequestType) -> IncomeStatement:
+def addIncomeStatement(companyID: int, props: AddIncomeStatementRequestType, isPrintLog: bool = False) -> IncomeStatement:
     print(props)
     url = "http://localhost:3000/company/{}/finantial/{}/income".format(companyID, props["finantialID"])
     result = requests.post(url, json=({"props": props}))
     incomeStatement: IncomeStatement = json.loads(result.content.decode('utf-8'))
-    print("[addIncomeStatement] result: {}".format(incomeStatement))
+    if isPrintLog:
+        print("[addIncomeStatement] result: {}".format(incomeStatement))
     return incomeStatement
 
-def getIncomeStatementList(companyID: int, finantialID: int) -> List[IncomeStatement]:
+def getIncomeStatementList(companyID: int, finantialID: int, isPrintLog: bool = False) -> List[IncomeStatement]:
     url = "http://localhost:3000/company/{}/finantial/{}/income".format(companyID, finantialID)
     result = requests.get(url)
     incomeStatementList: List[IncomeStatement] = json.loads(result.content.decode('utf-8'))
-    print("[getIncomeStatementList] result: {}".format(incomeStatementList))
+    if isPrintLog:
+        print("[getIncomeStatementList] result: {}".format(incomeStatementList))
     return incomeStatementList
 
 
-def getIncomeStatement(companyID: int, finantialID: int, incomeID: int) -> IncomeStatement:
+def getIncomeStatement(companyID: int, finantialID: int, incomeID: int, isPrintLog: bool = False) -> IncomeStatement:
     url = "http://localhost:3000/company/{}/finantial/{}/income/{}".format(companyID, finantialID, incomeID)
     result = requests.get(url)
     incomeStatement: IncomeStatement = json.loads(result.content.decode('utf-8'))
-    print("[getIncomeStatement] result: {}".format(incomeStatement))
+    if isPrintLog:
+        print("[getIncomeStatement] result: {}".format(incomeStatement))
     return incomeStatement
 
 

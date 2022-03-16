@@ -9,26 +9,29 @@ from domain import FinantialStatements
 from api.type import AddFinantialStatementsRequstType
 
 
-def addFinantialStatements(props: AddFinantialStatementsRequstType) -> FinantialStatements:
+def addFinantialStatements(props: AddFinantialStatementsRequstType, isPrintLog: bool = False) -> FinantialStatements:
     url = "http://localhost:3000/company/{}/finantial".format(props["companyID"])
     result = requests.post(url, json=({"props": props}))
     finantialStatements: FinantialStatements = json.loads(result.content.decode('utf-8'))
-    print("[addFinantialStatements] result: {}".format(finantialStatements))
+    if isPrintLog:
+        print("[addFinantialStatements] result: {}".format(finantialStatements))
     return finantialStatements
 
-def getFinantialStatementsList(companyID: int) -> List[FinantialStatements]:
+def getFinantialStatementsList(companyID: int, isPrintLog: bool = False) -> List[FinantialStatements]:
     url = "http://localhost:3000/company/{}/finantial".format(companyID)
     result = requests.get(url)
     finantialStatementsList: List[FinantialStatements] = json.loads(result.content.decode('utf-8'))
-    print("[getFinantialStatementsList] result: {}".format(finantialStatementsList))
+    if isPrintLog:
+        print("[getFinantialStatementsList] result: {}".format(finantialStatementsList))
     return finantialStatementsList
 
 
-def getFinantialStatements(companyID: int, finantialID: int) -> FinantialStatements:
+def getFinantialStatements(companyID: int, finantialID: int, isPrintLog: bool = False) -> FinantialStatements:
     url = "http://localhost:3000/company/{}/finantial/{}".format(companyID, finantialID)
     result = requests.get(url)
     finantialStatements: FinantialStatements = json.loads(result.content.decode('utf-8'))
-    print("[getFinantialStatements] result: {}".format(finantialStatements))
+    if isPrintLog:
+        print("[getFinantialStatements] result: {}".format(finantialStatements))
     return finantialStatements
 
 

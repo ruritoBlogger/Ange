@@ -9,26 +9,29 @@ from domain import StockPrice
 from api.type import AddStockPriceRequestType
 
 
-def addPrice(props: AddStockPriceRequestType) -> StockPrice:
+def addPrice(props: AddStockPriceRequestType, isPrintLog: bool = False) -> StockPrice:
     url = "http://localhost:3000/company/{}/stock".format(props["companyID"])
     result = requests.post(url, json=({"props": props}))
     price: StockPrice = json.loads(result.content.decode('utf-8'))
-    print("[addPrice] result: {}".format(price))
+    if isPrintLog:
+        print("[addPrice] result: {}".format(price))
     return price
 
-def getPriceList(companyID: int) -> List[StockPrice]:
+def getPriceList(companyID: int, isPrintLog: bool = False) -> List[StockPrice]:
     url = "http://localhost:3000/company/{}/stock".format(companyID)
     result = requests.get(url)
     priceList: List[StockPrice] = json.loads(result.content.decode('utf-8'))
-    print("[getPriceList] result: {}".format(priceList))
+    if isPrintLog:
+        print("[getPriceList] result: {}".format(priceList))
     return priceList
 
 
-def getPrice(companyID: int, id: int) -> StockPrice:
+def getPrice(companyID: int, id: int, isPrintLog: bool = False) -> StockPrice:
     url = "http://localhost:3000/company/{}/stock/{}".format(companyID, id)
     result = requests.get(url)
     price: StockPrice = json.loads(result.content.decode('utf-8'))
-    print("[getPrice] result: {}".format(price))
+    if isPrintLog:
+        print("[getPrice] result: {}".format(price))
     return price
 
 
