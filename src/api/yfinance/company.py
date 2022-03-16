@@ -65,7 +65,11 @@ def getCompanyBSWithTicker(ticker: Any, finantialStatements: List[FinantialState
 
     result: List[AddBalanceSheetRequestType] = []
     for date, item in df.iteritems():
-        relatedFS: FinantialStatements = next(x for x in finantialStatements if x["announcementDate"][:7] == date.strftime("%Y-%m"))
+        try:
+            relatedFS: FinantialStatements = next(x for x in finantialStatements if x["announcementDate"][:7] == date.strftime("%Y-%m"))
+        except StopIteration:
+            continue
+
         balanceSheet: AddBalanceSheetRequestType = { "finantialID":  relatedFS["id"]}
         balanceSheet["totalAssets"] = item["Total Assets"]
         balanceSheet["netAssets"] = item["Total Assets"] - item["Total Liab"]
@@ -102,7 +106,11 @@ def getCompanyCFWithTicker(ticker: Any, finantialStatements: List[FinantialState
 
     result: List[AddCashFlowRequestType] = []
     for date, item in df.iteritems():
-        relatedFS: FinantialStatements = next(x for x in finantialStatements if x["announcementDate"][:7] == date.strftime("%Y-%m"))
+        try:
+            relatedFS: FinantialStatements = next(x for x in finantialStatements if x["announcementDate"][:7] == date.strftime("%Y-%m"))
+        except StopIteration:
+            continue
+
         cashflow: AddCashFlowRequestType = { "finantialID":  relatedFS["id"]}
         cashflow["salesCF"] = item["Change To Operating Activities"]
         cashflow["investmentCF"] = item["Total Cashflows From Investing Activities"]
@@ -122,7 +130,11 @@ def getCompanyISWithTicker(ticker: Any, finantialStatements: List[FinantialState
 
     result: List[AddIncomeStatementRequestType] = []
     for date, item in df.iteritems():
-        relatedFS: FinantialStatements = next(x for x in finantialStatements if x["announcementDate"][:7] == date.strftime("%Y-%m"))
+        try:
+            relatedFS: FinantialStatements = next(x for x in finantialStatements if x["announcementDate"][:7] == date.strftime("%Y-%m"))
+        except StopIteration:
+            continue
+
         incomeStatement: AddIncomeStatementRequestType = { "finantialID":  relatedFS["id"]}
         incomeStatement["totalSales"] = item["Cost Of Revenue"] + item["Gross Profit"]
         incomeStatement["operatingIncome"] = item["Operating Income"]

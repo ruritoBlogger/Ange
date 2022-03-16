@@ -84,35 +84,40 @@ def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]
         fsList: List[FinantialStatements] = []
         for date in dateList:
             fs = addFinantialStatements({"companyID": company['id'], "announcementDate": date, "isFiscal": True})
-            fsList.append(fs)
+            if fs is not None:
+                fsList.append(fs)
         
         # 財務諸表データをベースにしたバランスシートデータを生成
         bsRequestList: List[AddBalanceSheetRequestType] = yfinance.getCompanyBSWithTicker(ticker, fsList, stockAmountList)
         bsList: List[BalanceSheet] = []
         for bsRequest in bsRequestList:
             bs = addBalanceSheet(company['id'], bsRequest)
-            bsList.append(bs)
+            if bs is not None:
+                bsList.append(bs)
         
         # 財務諸表データをベースにしたキャッシュ・フローデータを生成
         cfRequestList: List[AddCashFlowRequestType] = yfinance.getCompanyCFWithTicker(ticker, fsList)
         cfList: List[Cashflow] = []
         for cfRequest in cfRequestList:
             cf = addCashFlow(company['id'], cfRequest)
-            cfList.append(cf)
+            if cf is not None:
+                cfList.append(cf)
 
         # 財務諸表データをベースにした損益計算書データを生成
         isRequestList: List[AddIncomeStatementRequestType] = yfinance.getCompanyISWithTicker(ticker, fsList)
         isList: List[IncomeStatement] = []
         for isRequest in isRequestList:
             istatement = addIncomeStatement(company['id'], isRequest)
-            isList.append(istatement)
+            if istatement is not None:
+                isList.append(istatement)
 
         # 財務諸表データをベースにした指標データを生成
         indexRequestList: List[AddIndexRequestType] = calcIndex(spList, fsList, bsList, cfList, isList)
         indexList: List[Index] = []
         for indexRequest in indexRequestList:
             index = addIndex(company['id'], indexRequest)
-            indexList.append(index)
+            if index is not None:
+                indexList.append(index)
         
         companyListBar.update(1)
 
