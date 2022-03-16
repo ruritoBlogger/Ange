@@ -31,19 +31,23 @@ def choiceStockPriceWithAnnouncementDate(announcementDate: str, spList: List[Sto
     return None
 
 def calcIndex(spList: List[StockPrice], fsList: List[FinantialStatements], bsList: List[BalanceSheet], cfList: List[Cashflow], isList: List[IncomeStatement]) -> List[AddIndexRequestType]:
-    listLen = len(fsList)
-
     indexRequestList: List[AddIndexRequestType] = []
-    for i in range(listLen):
-        indexRequest: AddIndexRequestType = { "finantialID": fsList[i]['id'] }
-        indexRequest['capitalAdequacyRatio'] = bsList[i]['netAssets'] / bsList[i]['totalAssets']
-        indexRequest['roe'] = isList[i]['netIncome'] / bsList[i]['netAssets'] * 100
-        indexRequest['roa'] = isList[i]['netIncome'] / bsList[i]['totalAssets'] * 100
+    for finantialStatement in fsList:
+        try:
+            relatedBS = next(x for x in bsList if x['finantialID'] == finantialStatement['id'])
+            relatedIS = next(x for x in isList if x['finantialID'] == finantialStatement['id'])
+        except StopIteration:
+            continue
 
-        relatedSP: StockPrice = choiceStockPriceWithAnnouncementDate(fsList[i]['announcementDate'], spList)
-        indexRequest['eps'] = bsList[i]['printedNum'] / isList[i]['netIncome']
+        indexRequest: AddIndexRequestType = { "finantialID": finantialStatement['id'] }
+        indexRequest['capitalAdequacyRatio'] = relatedBS['netAssets'] / relatedBS['totalAssets']
+        indexRequest['roe'] = relatedIS['netIncome'] / relatedBS['netAssets'] * 100
+        indexRequest['roa'] = relatedIS['netIncome'] / relatedBS['totalAssets'] * 100
+
+        relatedSP: StockPrice = choiceStockPriceWithAnnouncementDate(finantialStatement['announcementDate'], spList)
+        indexRequest['eps'] = relatedBS['printedNum'] / relatedIS['netIncome']
         indexRequest['per'] = relatedSP['closingPrice'] * indexRequest['eps']
-        indexRequest['pbr'] = relatedSP['closingPrice'] * bsList[i]['printedNum'] / bsList[i]['netAssets']
+        indexRequest['pbr'] = relatedSP['closingPrice'] * relatedBS['printedNum'] / relatedBS['netAssets']
 
         indexRequestList.append(indexRequest)
     
