@@ -6,6 +6,7 @@ import pandas as pd
 import sys
 import os
 import time
+from datetime import datetime
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 
@@ -165,7 +166,8 @@ def getCompanyStockPriceWithTicker(ticker: Any, company: Company) -> List[AddSto
     
     return result
 
-def getCompanyStockAmountWithTicker(ticker: Any, dateList: List[str], cache: Optional[int] = None) -> List[Dict[str, int]]:
+@timeout_decorator.timeout(120)
+def getCompanyStockAmountWithTicker(ticker: Any, dateList: List[str], cache: Optional[int] = None) -> Optional[List[Dict[str, int]]]:
     """現在の株式数及び分割情報を用いて過去の株式数を算出し返却する
     
 
@@ -176,8 +178,8 @@ def getCompanyStockAmountWithTicker(ticker: Any, dateList: List[str], cache: Opt
     Returns:
         List[Dict[str, int]]: 過去の年月をキーに株式数をデータに割り当てた辞書
             {
-                "YYYY/mm": "stock amount(number)",
-                "YYYY/mm": "stock amout(number)",
+                "YYYY/mm/dd": "stock amount(number)",
+                "YYYY/mm/dd": "stock amout(number)",
             }
     """
 
@@ -189,6 +191,8 @@ def getCompanyStockAmountWithTicker(ticker: Any, dateList: List[str], cache: Opt
             print("yfinanceのAPIサーバーにアクセスが集中しているため一時休止します(10秒)")
             time.sleep(10)
             return getCompanyStockAmountWithTicker(ticker, dateList)
+        except KeyError:
+            return None
 
     try:
         splitData: pd.DataFrame = ticker.splits
@@ -202,7 +206,8 @@ def getCompanyStockAmountWithTicker(ticker: Any, dateList: List[str], cache: Opt
     for splitDate, splitRate in splitData.iteritems():
         for targetDate in dateList:
             # FIXME: 終わり
-            if splitDate.strftime("%Y") > targetDate[:4] or (splitDate.strftime("%Y") == targetDate[:4] and int(splitDate.strftime("%m")) >= int(targetDate[5:])):
+            # if splitDate.strftime("%Y") > targetDate[:4] or (splitDate.strftime("%Y") == targetDate[:4] and int(float(splitDate.strftime("%m"))) >= int(float(targetDate[5:]))):
+            if splitDate > datetime.strptime(targetDate, "%Y/%m/%d"):
                 currentStockAmount = currentStockAmount / splitRate
             
             stockAmountData.append({targetDate: currentStockAmount})

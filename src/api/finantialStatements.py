@@ -11,9 +11,13 @@ from api.type import AddFinantialStatementsRequstType
 
 def addFinantialStatements(props: AddFinantialStatementsRequstType, isPrintLog: bool = False) -> Optional[FinantialStatements]:
     url = "http://localhost:3000/company/{}/finantial".format(props["companyID"])
-    result = requests.post(url, json=({"props": props}))
-    finantialStatements: FinantialStatements = json.loads(result.content.decode('utf-8'))
 
+    try:
+        result = requests.post(url, json=({"props": props}))
+    except requests.exceptions.InvalidJSONError:
+        return None
+
+    finantialStatements: FinantialStatements = json.loads(result.content.decode('utf-8'))
     # 正常に情報を取得出来なかった場合の処理
     # FIXME: 本当は情報を取得する部分で実装すべき
     if "announcementDate" not in finantialStatements:

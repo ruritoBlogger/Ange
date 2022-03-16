@@ -11,9 +11,13 @@ from api.type import AddIncomeStatementRequestType
 
 def addIncomeStatement(companyID: int, props: AddIncomeStatementRequestType, isPrintLog: bool = False) -> Optional[IncomeStatement]:
     url = "http://localhost:3000/company/{}/finantial/{}/income".format(companyID, props["finantialID"])
-    result = requests.post(url, json=({"props": props}))
-    incomeStatement: IncomeStatement = json.loads(result.content.decode('utf-8'))
 
+    try:
+        result = requests.post(url, json=({"props": props}))
+    except requests.exceptions.InvalidJSONError:
+        return None
+
+    incomeStatement: IncomeStatement = json.loads(result.content.decode('utf-8'))
     # 正常に情報を取得出来なかった場合の処理
     # FIXME: 本当は情報を取得する部分で実装すべき
     if "finantialID" not in incomeStatement:
