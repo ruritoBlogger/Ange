@@ -9,19 +9,21 @@ from domain import Industry
 from api.type import AddIndustryRequestType
 
 
-def addIndustry(props: AddIndustryRequestType) -> Industry:
+def addIndustry(props: AddIndustryRequestType, isPrintLog: bool = False) -> Industry:
     url = "http://localhost:3000/industry"
     result = requests.post(url, json=({"props": props}))
     industry: Industry = json.loads(result.content.decode('utf-8'))
-    print("[addIndustry] result: {}".format(industry))
+    if isPrintLog:
+        print("[addIndustry] result: {}".format(industry))
     return industry
 
 
-def getIndustryList() -> List[Industry]:
+def getIndustryList(isPrintLog: bool = False) -> List[Industry]:
     url = "http://localhost:3000/industry"
     result = requests.get(url)
     industryList: List[Industry] = json.loads(result.content.decode('utf-8'))
-    print("[getIndustryList] result: {}".format(industryList))
+    if isPrintLog:
+        print("[getIndustryList] result: {}".format(industryList))
     return industryList
 
 
