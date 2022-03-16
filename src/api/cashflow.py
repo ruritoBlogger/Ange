@@ -11,9 +11,13 @@ from api.type import AddCashFlowRequestType
 
 def addCashFlow(companyID: int, props: AddCashFlowRequestType, isPrintLog: bool = False) -> Optional[Cashflow]:
     url = "http://localhost:3000/company/{}/finantial/{}/cashflow".format(companyID, props["finantialID"])
-    result = requests.post(url, json=({"props": props}))
-    cashflow: Cashflow = json.loads(result.content.decode('utf-8'))
 
+    try:
+        result = requests.post(url, json=({"props": props}))
+    except requests.exceptions.InvalidJSONError:
+        return None
+
+    cashflow: Cashflow = json.loads(result.content.decode('utf-8'))
     # 正常に情報を取得出来なかった場合の処理
     # FIXME: 本当は情報を取得する部分で実装すべき
     if "financialCF" not in cashflow:

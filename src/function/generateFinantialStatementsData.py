@@ -45,6 +45,9 @@ def calcIndex(spList: List[StockPrice], fsList: List[FinantialStatements], bsLis
         indexRequest['roa'] = relatedIS['netIncome'] / relatedBS['totalAssets'] * 100
 
         relatedSP: StockPrice = choiceStockPriceWithAnnouncementDate(finantialStatement['announcementDate'], spList)
+        if relatedSP is None:
+            continue
+
         indexRequest['eps'] = relatedBS['printedNum'] / relatedIS['netIncome']
         indexRequest['per'] = relatedSP['closingPrice'] * indexRequest['eps']
         indexRequest['pbr'] = relatedSP['closingPrice'] * relatedBS['printedNum'] / relatedBS['netAssets']
@@ -71,6 +74,8 @@ def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]
 
         stockAmountList: List[Dict[str, int]] = yfinance.getCompanyStockAmountWithTicker(ticker, dateList)
 
+        if stockAmountList is None:
+            continue
 
         # 株価データを生成
 
@@ -80,9 +85,10 @@ def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]
         stockPriceBar = tqdm(total = len(spRequestList))
         stockPriceBar.set_description("{}の株価情報を登録中".format(company['name']))
         for spRequest in spRequestList:
-            sp = addPrice(spRequest)
-            spList.append(sp)
             stockPriceBar.update(1)
+            sp = addPrice(spRequest)
+            if sp is not None:
+                spList.append(sp)
 
         # 各表のベースとなる財務諸表データを生成
         fsList: List[FinantialStatements] = []

@@ -11,9 +11,12 @@ from api.type import AddBalanceSheetRequestType
 
 def addBalanceSheet(companyID: int, props: AddBalanceSheetRequestType, isPrintLog: bool = False) -> Optional[BalanceSheet]:
     url = "http://localhost:3000/company/{}/finantial/{}/sheet".format(companyID, props["finantialID"])
-    result = requests.post(url, json=({"props": props}))
-    balanceSheet: BalanceSheet = json.loads(result.content.decode('utf-8'))
+    try:
+        result = requests.post(url, json=({"props": props}))
+    except requests.exceptions.InvalidJSONError:
+        return None
 
+    balanceSheet: BalanceSheet = json.loads(result.content.decode('utf-8'))
     # 正常に情報を取得出来なかった場合の処理
     # FIXME: 本当は情報を取得する部分で実装すべき
     if "capitalStock" not in balanceSheet:
