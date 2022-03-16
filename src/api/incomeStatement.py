@@ -1,5 +1,5 @@
 import json
-from typing import List
+from typing import List, Optional
 import requests
 import sys
 import os
@@ -9,11 +9,16 @@ from domain import IncomeStatement
 from api.type import AddIncomeStatementRequestType
 
 
-def addIncomeStatement(companyID: int, props: AddIncomeStatementRequestType, isPrintLog: bool = False) -> IncomeStatement:
-    print(props)
+def addIncomeStatement(companyID: int, props: AddIncomeStatementRequestType, isPrintLog: bool = False) -> Optional[IncomeStatement]:
     url = "http://localhost:3000/company/{}/finantial/{}/income".format(companyID, props["finantialID"])
     result = requests.post(url, json=({"props": props}))
     incomeStatement: IncomeStatement = json.loads(result.content.decode('utf-8'))
+
+    # 正常に情報を取得出来なかった場合の処理
+    # FIXME: 本当は情報を取得する部分で実装すべき
+    if "finantialID" not in incomeStatement:
+        return None
+
     if isPrintLog:
         print("[addIncomeStatement] result: {}".format(incomeStatement))
     return incomeStatement
