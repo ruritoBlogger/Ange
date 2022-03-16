@@ -7,6 +7,7 @@ import sys
 import os
 import time
 from datetime import datetime
+import timeout_decorator
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 
@@ -17,6 +18,7 @@ from util import convertDateFromJS
 def convertDate(target: str) -> str:
     return target.strftime("%Y/%m/%d")
 
+@timeout_decorator.timeout(120)
 def getTickerWithYahooAPI(company: Company) -> Any:
     requestBody = "{}.T".format(company["identificationCode"])
     try:
@@ -29,6 +31,7 @@ def getTickerWithYahooAPI(company: Company) -> Any:
     return ticker
 
 
+@timeout_decorator.timeout(120)
 def getCompanyDateWithTicker(ticker: Any) -> List[str]:
     try:
         df: pd.DataFrame = ticker.balance_sheet
@@ -43,6 +46,7 @@ def getCompanyDateWithTicker(ticker: Any) -> List[str]:
 
     return dateList
 
+@timeout_decorator.timeout(120)
 def getCompanyQuarterlyDateWithTicker(ticker: Any) -> List[str]:
     try:
         df: pd.DataFrame = ticker.quarterly_balance_sheet
@@ -56,6 +60,7 @@ def getCompanyQuarterlyDateWithTicker(ticker: Any) -> List[str]:
         dateList.append(convertDate(date))
     
 
+@timeout_decorator.timeout(120)
 def getCompanyBSWithTicker(ticker: Any, finantialStatements: List[FinantialStatements], stockAmountList: List[Dict[str, int]]) -> List[AddBalanceSheetRequestType]:
     try:
         df: pd.DataFrame = ticker.balance_sheet
@@ -97,6 +102,7 @@ def getCompanyBSWithTicker(ticker: Any, finantialStatements: List[FinantialState
     
     return result
 
+@timeout_decorator.timeout(120)
 def getCompanyCFWithTicker(ticker: Any, finantialStatements: List[FinantialStatements]) -> List[AddCashFlowRequestType]:
     try:
         df: pd.DataFrame = ticker.cashflow
@@ -121,6 +127,7 @@ def getCompanyCFWithTicker(ticker: Any, finantialStatements: List[FinantialState
 
     return result
 
+@timeout_decorator.timeout(120)
 def getCompanyISWithTicker(ticker: Any, finantialStatements: List[FinantialStatements]) -> List[AddIncomeStatementRequestType]:
     try:
         df: pd.DataFrame = ticker.financials
@@ -146,6 +153,7 @@ def getCompanyISWithTicker(ticker: Any, finantialStatements: List[FinantialState
     
     return result
 
+@timeout_decorator.timeout(120)
 def getCompanyStockPriceWithTicker(ticker: Any, company: Company) -> List[AddStockPriceRequestType]: 
     try:
         df: pd.DataFrame = ticker.history(period="max")
@@ -167,7 +175,11 @@ def getCompanyStockPriceWithTicker(ticker: Any, company: Company) -> List[AddSto
     return result
 
 @timeout_decorator.timeout(120)
+<<<<<<< HEAD
 def getCompanyStockAmountWithTicker(ticker: Any, dateList: List[str], cache: Optional[int] = None) -> Optional[List[Dict[str, int]]]:
+=======
+def getCompanyStockAmountWithTicker(ticker: Any, dateList: List[str], cache: Optional[int] = None) -> List[Dict[str, int]]:
+>>>>>>> 43dc794... feat: yfinance APIがタイムアウトした際に再試行する処理を実装
     """現在の株式数及び分割情報を用いて過去の株式数を算出し返却する
     
 

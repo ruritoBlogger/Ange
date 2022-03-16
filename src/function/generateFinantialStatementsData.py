@@ -1,7 +1,9 @@
-from typing import Any, List, Tuple, Dict, Optional
+from typing import Any, List, Tuple, Dict, Optional, Callable
 import sys
 import os
 from tqdm import tqdm
+import time
+from timeout_decorator import TimeoutError
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
@@ -9,6 +11,24 @@ from api import yfinance, getCompanyList, addFinantialStatements, addBalanceShee
 from api.type import AddBalanceSheetRequestType, AddFinantialStatementsRequstType, AddCashFlowRequestType, AddIncomeStatementRequestType, AddIndexRequestType, AddStockPriceRequestType
 from domain import FinantialStatements, Company, BalanceSheet, Cashflow, IncomeStatement, Index, StockPrice
 from util import convertDateFromJS
+
+
+def retryIfAPITimeout(func: Callable[[Any], Any], *args) -> Any:
+    """yfinanceのAPIを叩く, またタイムアウトした際はもう一度処理を挟む
+
+    Args:
+        target (Callable[[Any], Any]): 叩きたい関数
+
+    Returns:
+        Any: 関数の結果
+    """
+    try:
+        result = func(*args)
+        return result
+    except TimeoutError:
+        print("retry func because yfinance api is timeout...")
+        time.sleep(10)
+        return retryIfAPITimeout(func, args)
 
 def choiceStockPriceWithAnnouncementDate(announcementDate: str, spList: List[StockPrice]) -> Optional[StockPrice]:
     """決算日から一番近い && 決算日以降の日付の株情報を取得する
@@ -69,10 +89,13 @@ def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]
         raise ValueError('企業情報が登録されていません')
 
     for company in companyList:
-        ticker: Any = yfinance.getTickerWithYahooAPI(company)
-        dateList: List[str] = yfinance.getCompanyDateWithTicker(ticker)
+        # ticker: Any = yfinance.getTickerWithYahooAPI(company)
+        ticker: Any = retryIfAPITimeout(yfinance.getTickerWithYahooAPI, company)
+        # dateList: List[str] = yfinance.getCompanyDateWithTicker(ticker)
+        dateList: List[str] = retryIfAPITimeout(yfinance.getCompanyDateWithTicker, ticker)
 
-        stockAmountList: List[Dict[str, int]] = yfinance.getCompanyStockAmountWithTicker(ticker, dateList)
+        # stockAmountList: List[Dict[str, int]] = yfinance.getCompanyStockAmountWithTicker(ticker, dateList)
+        stockAmountList: List[Dict[str, int]] = retryIfAPITimeout(yfinance.getCompanyStockAmountWithTicker, ticker, dateList)
 
         if stockAmountList is None:
             continue
@@ -80,7 +103,8 @@ def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]
         # 株価データを生成
 
         spList: List[StockPrice] = []
-        spRequestList: List[AddStockPriceRequestType] = yfinance.getCompanyStockPriceWithTicker(ticker, company)
+        # spRequestList: List[AddStockPriceRequestType] = yfinance.getCompanyStockPriceWithTicker(ticker, company)
+        spRequestList: List[AddStockPriceRequestType] = retryIfAPITimeout(yfinance.getCompanyStockPriceWithTicker, ticker, company)
 
         stockPriceBar = tqdm(total = len(spRequestList))
         stockPriceBar.set_description("{}の株価情報を登録中".format(company['name']))
@@ -98,7 +122,8 @@ def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]
                 fsList.append(fs)
         
         # 財務諸表データをベースにしたバランスシートデータを生成
-        bsRequestList: List[AddBalanceSheetRequestType] = yfinance.getCompanyBSWithTicker(ticker, fsList, stockAmountList)
+        # bsRequestList: List[AddBalanceSheetRequestType] = yfinance.getCompanyBSWithTicker(ticker, fsList, stockAmountList)
+        bsRequestList: List[AddBalanceSheetRequestType] = retryIfAPITimeout(yfinance.getCompanyBSWithTicker, ticker, fsList, stockAmountList)
         bsList: List[BalanceSheet] = []
         for bsRequest in bsRequestList:
             bs = addBalanceSheet(company['id'], bsRequest)
@@ -106,7 +131,8 @@ def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]
                 bsList.append(bs)
         
         # 財務諸表データをベースにしたキャッシュ・フローデータを生成
-        cfRequestList: List[AddCashFlowRequestType] = yfinance.getCompanyCFWithTicker(ticker, fsList)
+        # cfRequestList: List[AddCashFlowRequestType] = yfinance.getCompanyCFWithTicker(ticker, fsList)
+        cfRequestList: List[AddCashFlowRequestType] = retryIfAPITimeout(yfinance.getCompanyCFWithTicker, ticker, fsList)
         cfList: List[Cashflow] = []
         for cfRequest in cfRequestList:
             cf = addCashFlow(company['id'], cfRequest)
@@ -114,7 +140,8 @@ def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]
                 cfList.append(cf)
 
         # 財務諸表データをベースにした損益計算書データを生成
-        isRequestList: List[AddIncomeStatementRequestType] = yfinance.getCompanyISWithTicker(ticker, fsList)
+        # isRequestList: List[AddIncomeStatementRequestType] = yfinance.getCompanyISWithTicker(ticker, fsList)
+        isRequestList: List[AddIncomeStatementRequestType] = retryIfAPITimeout(yfinance.getCompanyISWithTicker, ticker, fsList)
         isList: List[IncomeStatement] = []
         for isRequest in isRequestList:
             istatement = addIncomeStatement(company['id'], isRequest)
