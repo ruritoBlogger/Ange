@@ -95,40 +95,35 @@ def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]
         fsList: List[FinantialStatements] = []
         for date in dateList:
             fs = addFinantialStatements({"companyID": company['id'], "announcementDate": date, "isFiscal": True})
-            if fs is not None:
-                fsList.append(fs)
+            fsList.append(fs)
         
         # 財務諸表データをベースにしたバランスシートデータを生成
         bsRequestList: List[AddBalanceSheetRequestType] = yfinance.getCompanyBS(handler, fsList, stockAmountList)
         bsList: List[BalanceSheet] = []
         for bsRequest in bsRequestList:
             bs = addBalanceSheet(company['id'], bsRequest)
-            if bs is not None:
-                bsList.append(bs)
+            bsList.append(bs)
         
         # 財務諸表データをベースにしたキャッシュ・フローデータを生成
         cfRequestList: List[AddCashFlowRequestType] = yfinance.getCompanyCF(handler, fsList)
         cfList: List[Cashflow] = []
         for cfRequest in cfRequestList:
             cf = addCashFlow(company['id'], cfRequest)
-            if cf is not None:
-                cfList.append(cf)
+            cfList.append(cf)
 
         # 財務諸表データをベースにした損益計算書データを生成
         isRequestList: List[AddIncomeStatementRequestType] = yfinance.getCompanyIS(handler, fsList)
         isList: List[IncomeStatement] = []
         for isRequest in isRequestList:
             istatement = addIncomeStatement(company['id'], isRequest)
-            if istatement is not None:
-                isList.append(istatement)
+            isList.append(istatement)
 
         # 財務諸表データをベースにした指標データを生成
         indexRequestList: List[AddIndexRequestType] = calcIndex(spList, fsList, bsList, cfList, isList)
         indexList: List[Index] = []
         for indexRequest in indexRequestList:
             index = addIndex(company['id'], indexRequest)
-            if index is not None:
-                indexList.append(index)
+            indexList.append(index)
         
         companyListBar.update(1)
 

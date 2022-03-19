@@ -1,5 +1,5 @@
 import json
-from typing import List, Optional
+from typing import List
 import requests
 import sys
 import os
@@ -9,16 +9,10 @@ from domain import Index
 from api.type import AddIndexRequestType
 
 
-def addIndex(companyID: int, props: AddIndexRequestType, isPrintLog: bool = False) -> Optional[Index]:
+def addIndex(companyID: int, props: AddIndexRequestType, isPrintLog: bool = False) -> Index:
     url = "http://localhost:3000/company/{}/finantial/{}/index".format(companyID, props["finantialID"])
     result = requests.post(url, json=({"props": props}))
     index: Index = json.loads(result.content.decode('utf-8'))
-
-    # 正常に情報を取得出来なかった場合の処理
-    # FIXME: 本当は情報を取得する部分で実装すべき
-    if "capitalAdequacyRatio" not in index:
-        return None
-
     if isPrintLog:
         print("[addIndex] result: {}".format(index))
     return index
