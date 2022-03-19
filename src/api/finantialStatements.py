@@ -1,5 +1,5 @@
 import json
-from typing import List, Optional
+from typing import List
 import requests
 import sys
 import os
@@ -9,22 +9,13 @@ from domain import FinantialStatements
 from api.type import AddFinantialStatementsRequstType
 
 
-def addFinantialStatements(props: AddFinantialStatementsRequstType, isPrintLog: bool = False) -> Optional[FinantialStatements]:
+def addFinantialStatements(props: AddFinantialStatementsRequstType, isPrintLog: bool = False) -> FinantialStatements:
     url = "http://localhost:3000/company/{}/finantial".format(props["companyID"])
-
-    try:
-        result = requests.post(url, json=({"props": props}))
-    except requests.exceptions.InvalidJSONError:
-        return None
-
+    result = requests.post(url, json=({"props": props}))
     finantialStatements: FinantialStatements = json.loads(result.content.decode('utf-8'))
-    # 正常に情報を取得出来なかった場合の処理
-    # FIXME: 本当は情報を取得する部分で実装すべき
-    if "announcementDate" not in finantialStatements:
-        return None
-
     if isPrintLog:
         print("[addFinantialStatements] result: {}".format(finantialStatements))
+
     return finantialStatements
 
 def getFinantialStatementsList(companyID: int, isPrintLog: bool = False) -> List[FinantialStatements]:

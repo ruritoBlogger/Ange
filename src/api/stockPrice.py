@@ -1,5 +1,5 @@
 import json
-from typing import List, Optional
+from typing import List
 import requests
 import sys
 import os
@@ -9,19 +9,10 @@ from domain import StockPrice
 from api.type import AddStockPriceRequestType
 
 
-def addPrice(props: AddStockPriceRequestType, isPrintLog: bool = False) -> Optional[StockPrice]:
+def addPrice(props: AddStockPriceRequestType, isPrintLog: bool = False) -> StockPrice:
     url = "http://localhost:3000/company/{}/stock".format(props["companyID"])
-    try:
-        result = requests.post(url, json=({"props": props}))
-    except requests.exceptions.InvalidJSONError:
-        return None
-    
+    result = requests.post(url, json=({"props": props}))
     price: StockPrice = json.loads(result.content.decode('utf-8'))
-    # 正常に情報を取得出来なかった場合の処理
-    # FIXME: 本当は情報を取得する部分で実装すべき
-    if "closingPrice" not in price:
-        return None
-
     if isPrintLog:
         print("[addPrice] result: {}".format(price))
     return price

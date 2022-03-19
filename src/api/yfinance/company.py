@@ -1,7 +1,6 @@
 from re import S
 import yfinance as yf
 from typing import Any, List, Dict, Optional
-from requests.exceptions import ConnectionError
 import pandas as pd
 import sys
 import os
@@ -34,12 +33,14 @@ def getCompanyBS(handler: TickerHandler, finantialStatements: List[FinantialStat
     result: List[AddBalanceSheetRequestType] = []
     for date, item in balanceSheet.iteritems():
 
-        # FIXME: 連動する財務諸表が存在しない場合っておかしくね？？？？？？？
-        # continueしてはいけないはず(コード側で何らかの問題があるので)
+        # TODO: 例外が発生する原因を突き止める
         try:
             relatedFS: FinantialStatements = next(x for x in finantialStatements if x["announcementDate"][:7] == date.strftime("%Y-%m"))
         except StopIteration:
-            continue
+            print("BalanceSheetに関連するFinantialStatementsが取得出来てません")
+            print("BalanceSheet: {}".format(balanceSheet))
+            print("FinantialStatementsList: {}".format(finantialStatements))
+            raise StopIteration
 
         balanceSheet: AddBalanceSheetRequestType = { "finantialID":  relatedFS["id"]}
         balanceSheet["totalAssets"] = item["Total Assets"]
@@ -73,12 +74,14 @@ def getCompanyCF(handler: TickerHandler, finantialStatements: List[FinantialStat
     result: List[AddCashFlowRequestType] = []
     for date, item in cashflow.iteritems():
 
-        # FIXME: 連動する財務諸表が存在しない場合っておかしくね？？？？？？？
-        # continueしてはいけないはず(コード側で何らかの問題があるので)
+        # TODO: 例外が発生する原因を突き止める
         try:
             relatedFS: FinantialStatements = next(x for x in finantialStatements if x["announcementDate"][:7] == date.strftime("%Y-%m"))
         except StopIteration:
-            continue
+            print("Cashflowに関連するFinantialStatementsが取得出来てません")
+            print("Cashflow: {}".format(cashflow))
+            print("FinantialStatementsList: {}".format(finantialStatements))
+            raise StopIteration
 
         cashflow: AddCashFlowRequestType = { "finantialID":  relatedFS["id"]}
         cashflow["salesCF"] = item["Change To Operating Activities"]
@@ -95,12 +98,14 @@ def getCompanyIS(handler: TickerHandler, finantialStatements: List[FinantialStat
 
     for date, item in incomeStatement.iteritems():
 
-        # FIXME: 連動する財務諸表が存在しない場合っておかしくね？？？？？？？
-        # continueしてはいけないはず(コード側で何らかの問題があるので)
+        # TODO: 例外が発生する原因を突き止める
         try:
             relatedFS: FinantialStatements = next(x for x in finantialStatements if x["announcementDate"][:7] == date.strftime("%Y-%m"))
         except StopIteration:
-            continue
+            print("IncomeStatementに関連するFinantialStatementsが取得出来てません")
+            print("IncomeStatement: {}".format(incomeStatement))
+            print("FinantialStatementsList: {}".format(finantialStatements))
+            raise StopIteration
 
         incomeStatement: AddIncomeStatementRequestType = { "finantialID":  relatedFS["id"]}
         incomeStatement["totalSales"] = item["Cost Of Revenue"] + item["Gross Profit"]

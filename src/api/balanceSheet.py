@@ -1,5 +1,5 @@
 import json
-from typing import List, Optional
+from typing import List
 import requests
 import sys
 import os
@@ -9,19 +9,10 @@ from domain import BalanceSheet
 from api.type import AddBalanceSheetRequestType
 
 
-def addBalanceSheet(companyID: int, props: AddBalanceSheetRequestType, isPrintLog: bool = False) -> Optional[BalanceSheet]:
+def addBalanceSheet(companyID: int, props: AddBalanceSheetRequestType, isPrintLog: bool = False) -> BalanceSheet:
     url = "http://localhost:3000/company/{}/finantial/{}/sheet".format(companyID, props["finantialID"])
-    try:
-        result = requests.post(url, json=({"props": props}))
-    except requests.exceptions.InvalidJSONError:
-        return None
-
+    result = requests.post(url, json=({"props": props}))
     balanceSheet: BalanceSheet = json.loads(result.content.decode('utf-8'))
-    # 正常に情報を取得出来なかった場合の処理
-    # FIXME: 本当は情報を取得する部分で実装すべき
-    if "capitalStock" not in balanceSheet:
-        return None
-
     if isPrintLog:
         print("[addBalanceSheet] result: {}".format(balanceSheet))
     return balanceSheet
