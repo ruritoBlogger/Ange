@@ -5,72 +5,37 @@ from requests.exceptions import ConnectionError
 import pandas as pd
 import sys
 import os
-import time
 from datetime import datetime
-import timeout_decorator
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 
 from api import AddFinantialStatementsRequstType, AddBalanceSheetRequestType, AddCashFlowRequestType, AddIncomeStatementRequestType, AddIndexRequestType, AddStockPriceRequestType
+from .tickerHandler import TickerHandler
 from domain import FinantialStatements, Company
 from util import convertDateFromJS
 
 def convertDate(target: str) -> str:
     return target.strftime("%Y/%m/%d")
 
-@timeout_decorator.timeout(120)
-def getTickerWithYahooAPI(company: Company) -> Any:
-    requestBody = "{}.T".format(company["identificationCode"])
-    try:
-        ticker = yf.Ticker(requestBody)
-    except ConnectionError:
-        print("yfinanceのAPIサーバーにアクセスが集中しているため一時休止します(10秒)")
-        time.sleep(10)
-        return getTickerWithYahooAPI(company)
+# TODO: 4半期毎のデータも取得出来るようにする
 
-    return ticker
-
-
-@timeout_decorator.timeout(120)
-def getCompanyDateWithTicker(ticker: Any) -> List[str]:
-    try:
-        df: pd.DataFrame = ticker.balance_sheet
-    except ConnectionError:
-        print("yfinanceのAPIサーバーにアクセスが集中しているため一時休止します(10秒)")
-        time.sleep(10)
-        return getCompanyDateWithTicker(ticker)
+def getCompanyDate(handler: TickerHandler) -> List[str]:
+    balanceSheet: pd.DataFrame = handler.getBalanceSheet()
 
     dateList: List[str] = []
-    for date, _ in df.iteritems():
+    for date, _ in balanceSheet.iteritems():
         dateList.append(convertDate(date))
 
     return dateList
 
-@timeout_decorator.timeout(120)
-def getCompanyQuarterlyDateWithTicker(ticker: Any) -> List[str]:
-    try:
-        df: pd.DataFrame = ticker.quarterly_balance_sheet
-    except ConnectionError:
-        print("yfinanceのAPIサーバーにアクセスが集中しているため一時休止します(10秒)")
-        time.sleep(10)
-        return getCompanyQuarterlyDateWithTicker(ticker)
-
-    dateList: List[str] = []
-    for date, _ in df.iteritems():
-        dateList.append(convertDate(date))
-    
-
-@timeout_decorator.timeout(120)
-def getCompanyBSWithTicker(ticker: Any, finantialStatements: List[FinantialStatements], stockAmountList: List[Dict[str, int]]) -> List[AddBalanceSheetRequestType]:
-    try:
-        df: pd.DataFrame = ticker.balance_sheet
-    except ConnectionError:
-        print("yfinanceのAPIサーバーにアクセスが集中しているため一時休止します(10秒)")
-        time.sleep(10)
-        return getCompanyBSWithTicker(ticker, finantialStatements, stockAmountList)
+def getCompanyBS(handler: TickerHandler, finantialStatements: List[FinantialStatements], stockAmountList: List[Dict[str, int]]) -> List[AddBalanceSheetRequestType]:
+    balanceSheet: pd.DataFrame = handler.getBalanceSheet()
 
     result: List[AddBalanceSheetRequestType] = []
-    for date, item in df.iteritems():
+    for date, item in balanceSheet.iteritems():
+
+        # FIXME: 連動する財務諸表が存在しない場合っておかしくね？？？？？？？
+        # continueしてはいけないはず(コード側で何らかの問題があるので)
         try:
             relatedFS: FinantialStatements = next(x for x in finantialStatements if x["announcementDate"][:7] == date.strftime("%Y-%m"))
         except StopIteration:
@@ -102,17 +67,14 @@ def getCompanyBSWithTicker(ticker: Any, finantialStatements: List[FinantialState
     
     return result
 
-@timeout_decorator.timeout(120)
-def getCompanyCFWithTicker(ticker: Any, finantialStatements: List[FinantialStatements]) -> List[AddCashFlowRequestType]:
-    try:
-        df: pd.DataFrame = ticker.cashflow
-    except ConnectionError:
-        print("yfinanceのAPIサーバーにアクセスが集中しているため一時休止します(10秒)")
-        time.sleep(10)
-        return getCompanyCFWithTicker(ticker, finantialStatements)
+def getCompanyCF(handler: TickerHandler, finantialStatements: List[FinantialStatements]) -> List[AddCashFlowRequestType]:
+    cashflow: pd.DataFrame = handler.getCashflow()
 
     result: List[AddCashFlowRequestType] = []
-    for date, item in df.iteritems():
+    for date, item in cashflow.iteritems():
+
+        # FIXME: 連動する財務諸表が存在しない場合っておかしくね？？？？？？？
+        # continueしてはいけないはず(コード側で何らかの問題があるので)
         try:
             relatedFS: FinantialStatements = next(x for x in finantialStatements if x["announcementDate"][:7] == date.strftime("%Y-%m"))
         except StopIteration:
@@ -127,17 +89,14 @@ def getCompanyCFWithTicker(ticker: Any, finantialStatements: List[FinantialState
 
     return result
 
-@timeout_decorator.timeout(120)
-def getCompanyISWithTicker(ticker: Any, finantialStatements: List[FinantialStatements]) -> List[AddIncomeStatementRequestType]:
-    try:
-        df: pd.DataFrame = ticker.financials
-    except ConnectionError:
-        print("yfinanceのAPIサーバーにアクセスが集中しているため一時休止します(10秒)")
-        time.sleep(10)
-        return getCompanyISWithTicker(ticker, finantialStatements)
-
+def getCompanyIS(handler: TickerHandler, finantialStatements: List[FinantialStatements]) -> List[AddIncomeStatementRequestType]:
+    incomeStatement: pd.DataFrame = handler.getIncomeStatement()
     result: List[AddIncomeStatementRequestType] = []
-    for date, item in df.iteritems():
+
+    for date, item in incomeStatement.iteritems():
+
+        # FIXME: 連動する財務諸表が存在しない場合っておかしくね？？？？？？？
+        # continueしてはいけないはず(コード側で何らかの問題があるので)
         try:
             relatedFS: FinantialStatements = next(x for x in finantialStatements if x["announcementDate"][:7] == date.strftime("%Y-%m"))
         except StopIteration:
@@ -153,17 +112,11 @@ def getCompanyISWithTicker(ticker: Any, finantialStatements: List[FinantialState
     
     return result
 
-@timeout_decorator.timeout(120)
-def getCompanyStockPriceWithTicker(ticker: Any, company: Company) -> List[AddStockPriceRequestType]: 
-    try:
-        df: pd.DataFrame = ticker.history(period="max")
-    except ConnectionError:
-        print("yfinanceのAPIサーバーにアクセスが集中しているため一時休止します(10秒)")
-        time.sleep(10)
-        return getCompanyStockPriceWithTicker(ticker, company)
-
+def getCompanyStockPrice(handler: TickerHandler, company: Company) -> List[AddStockPriceRequestType]: 
+    stockPrice: pd.DataFrame = handler.getStockPrice()
     result: List[AddStockPriceRequestType] = []
-    for date, item in df.iterrows():
+
+    for date, item in stockPrice.iterrows():
         stockPrice: AddStockPriceRequestType = { "companyID": company["id"]}
         stockPrice["openingPrice"] = item["Open"]
         stockPrice["closingPrice"] = item["Close"]
@@ -174,12 +127,7 @@ def getCompanyStockPriceWithTicker(ticker: Any, company: Company) -> List[AddSto
     
     return result
 
-@timeout_decorator.timeout(120)
-<<<<<<< HEAD
-def getCompanyStockAmountWithTicker(ticker: Any, dateList: List[str], cache: Optional[int] = None) -> Optional[List[Dict[str, int]]]:
-=======
-def getCompanyStockAmountWithTicker(ticker: Any, dateList: List[str], cache: Optional[int] = None) -> List[Dict[str, int]]:
->>>>>>> 43dc794... feat: yfinance APIがタイムアウトした際に再試行する処理を実装
+def getCompanyStockAmount(handler: TickerHandler, dateList: List[str] ) -> Optional[List[Dict[str, int]]]:
     """現在の株式数及び分割情報を用いて過去の株式数を算出し返却する
     
 
@@ -188,43 +136,34 @@ def getCompanyStockAmountWithTicker(ticker: Any, dateList: List[str], cache: Opt
         dateList (List[str]): 取得したい過去の年月
 
     Returns:
-        List[Dict[str, int]]: 過去の年月をキーに株式数をデータに割り当てた辞書
+        Optional[List[Dict[str, int]]]:
+        過去の年月をキーに株式数をデータに割り当てた辞書
+        現在の発行部数が取得出来ない場合はNoneが返却される
+
+        ex:
             {
                 "YYYY/mm/dd": "stock amount(number)",
                 "YYYY/mm/dd": "stock amout(number)",
             }
     """
 
-    # NOTE: 1回目のAPIアクセスに既に成功している場合 == cacheの中身に欲しい情報が格納済み
-    if cache == None:
-        try:
-            currentStockAmount: int = ticker.info["sharesOutstanding"]
-        except ConnectionError:
-            print("yfinanceのAPIサーバーにアクセスが集中しているため一時休止します(10秒)")
-            time.sleep(10)
-            return getCompanyStockAmountWithTicker(ticker, dateList)
-        except KeyError:
-            return None
+    info: Dict[str, Any] = handler.getInfo()
+    if "sharesOutstanding" not in info:
+        return None
+    currentStockAmount = info["sharesOutstanding"]
 
-    try:
-        splitData: pd.DataFrame = ticker.splits
-    except ConnectionError:
-            print("yfinanceのAPIサーバーにアクセスが集中しているため一時休止します(10秒)")
-            time.sleep(10)
-            return getCompanyStockAmountWithTicker(ticker, dateList, currentStockAmount)
-
+    splits: pd.DataFrame = handler.getSplits()
     stockAmountData: List[Dict[str, int]] = []
 
-    for splitDate, splitRate in splitData.iteritems():
+    for splitDate, splitRate in splits.iteritems():
         for targetDate in dateList:
-            # FIXME: 終わり
-            # if splitDate.strftime("%Y") > targetDate[:4] or (splitDate.strftime("%Y") == targetDate[:4] and int(float(splitDate.strftime("%m"))) >= int(float(targetDate[5:]))):
             if splitDate > datetime.strptime(targetDate, "%Y/%m/%d"):
                 currentStockAmount = currentStockAmount / splitRate
             
             stockAmountData.append({targetDate: currentStockAmount})
     
     return stockAmountData
+
 
 def getCompanyFSWithYahooAPI(company: Company) -> List[AddFinantialStatementsRequstType]:
     requestBody = "{}.T".format(company["identificationCode"])
