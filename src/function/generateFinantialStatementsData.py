@@ -1,4 +1,4 @@
-from typing import Any, List, Tuple, Dict, Optional, Callable
+from typing import Any, List, Tuple, Dict, Optional
 import sys
 import os
 from tqdm import tqdm
@@ -8,7 +8,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from api import yfinance, getCompanyList, addFinantialStatements, addBalanceSheet, addCashFlow, addIncomeStatement, addIndex, addPrice
 from api.type import AddBalanceSheetRequestType, AddFinantialStatementsRequstType, AddCashFlowRequestType, AddIncomeStatementRequestType, AddIndexRequestType, AddStockPriceRequestType
 from domain import FinantialStatements, Company, BalanceSheet, Cashflow, IncomeStatement, Index, StockPrice
-from util import convertDateFromJS, retrySendRequestWhenTimeout
+from util import convertDateFromJS
 
 
 def choiceStockPriceWithAnnouncementDate(announcementDate: str, spList: List[StockPrice]) -> Optional[StockPrice]:
@@ -70,22 +70,18 @@ def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]
         raise ValueError('企業情報が登録されていません')
 
     for company in companyList:
-        # ticker: Any = yfinance.getTickerWithYahooAPI(company)
-        ticker: Any = retrySendRequestWhenTimeout(yfinance.getTickerWithYahooAPI, company)
-        # dateList: List[str] = yfinance.getCompanyDateWithTicker(ticker)
-        dateList: List[str] = retrySendRequestWhenTimeout(yfinance.getCompanyDateWithTicker, ticker)
+        handler: yfinance.TickerHandler = yfinance.TickerHandler()
+        handler.registTicker(company)
 
-        # stockAmountList: List[Dict[str, int]] = yfinance.getCompanyStockAmountWithTicker(ticker, dateList)
-        stockAmountList: List[Dict[str, int]] = retrySendRequestWhenTimeout(yfinance.getCompanyStockAmountWithTicker, ticker, dateList)
+        dateList: List[str] = yfinance.getCompanyDate(handler)
+        stockAmountList: Optional[List[Dict[str, int]]] = yfinance.getCompanyStockAmount(handler, dateList)
 
         if stockAmountList is None:
             continue
 
         # 株価データを生成
-
         spList: List[StockPrice] = []
-        # spRequestList: List[AddStockPriceRequestType] = yfinance.getCompanyStockPriceWithTicker(ticker, company)
-        spRequestList: List[AddStockPriceRequestType] = retrySendRequestWhenTimeout(yfinance.getCompanyStockPriceWithTicker, ticker, company)
+        spRequestList: List[AddStockPriceRequestType] = yfinance.getCompanyStockPrice(handler, company)
 
         stockPriceBar = tqdm(total = len(spRequestList))
         stockPriceBar.set_description("{}の株価情報を登録中".format(company['name']))
@@ -103,8 +99,7 @@ def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]
                 fsList.append(fs)
         
         # 財務諸表データをベースにしたバランスシートデータを生成
-        # bsRequestList: List[AddBalanceSheetRequestType] = yfinance.getCompanyBSWithTicker(ticker, fsList, stockAmountList)
-        bsRequestList: List[AddBalanceSheetRequestType] = retrySendRequestWhenTimeout(yfinance.getCompanyBSWithTicker, ticker, fsList, stockAmountList)
+        bsRequestList: List[AddBalanceSheetRequestType] = yfinance.getCompanyBS(handler, fsList, stockAmountList)
         bsList: List[BalanceSheet] = []
         for bsRequest in bsRequestList:
             bs = addBalanceSheet(company['id'], bsRequest)
@@ -112,8 +107,7 @@ def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]
                 bsList.append(bs)
         
         # 財務諸表データをベースにしたキャッシュ・フローデータを生成
-        # cfRequestList: List[AddCashFlowRequestType] = yfinance.getCompanyCFWithTicker(ticker, fsList)
-        cfRequestList: List[AddCashFlowRequestType] = retrySendRequestWhenTimeout(yfinance.getCompanyCFWithTicker, ticker, fsList)
+        cfRequestList: List[AddCashFlowRequestType] = yfinance.getCompanyCF(handler, fsList)
         cfList: List[Cashflow] = []
         for cfRequest in cfRequestList:
             cf = addCashFlow(company['id'], cfRequest)
@@ -121,8 +115,7 @@ def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]
                 cfList.append(cf)
 
         # 財務諸表データをベースにした損益計算書データを生成
-        # isRequestList: List[AddIncomeStatementRequestType] = yfinance.getCompanyISWithTicker(ticker, fsList)
-        isRequestList: List[AddIncomeStatementRequestType] = retrySendRequestWhenTimeout(yfinance.getCompanyISWithTicker, ticker, fsList)
+        isRequestList: List[AddIncomeStatementRequestType] = yfinance.getCompanyIS(handler, fsList)
         isList: List[IncomeStatement] = []
         for isRequest in isRequestList:
             istatement = addIncomeStatement(company['id'], isRequest)
@@ -140,29 +133,5 @@ def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]
         companyListBar.update(1)
 
 
-
-def generateFinantialStatementsData() -> List[FinantialStatements]:
-    companyList: List[Company] = getCompanyList()
-
-    if type(companyList) is not list:
-        raise ValueError('企業情報の取得に失敗しました')
-
-    elif len(companyList) == 0:
-        raise ValueError('企業情報が登録されていません')
-
-
-    companyListWithFSRequest: List[List[AddFinantialStatementsRequstType]] = []
-    for company in companyList:
-        companyListWithFSRequest.append(yfinance.getCompanyFSWithYahooAPI(company))
-
-    result: List[FinantialStatements] = []
-    for FSRequstList in companyListWithFSRequest:
-        for request in FSRequstList:
-            result.append(addFinantialStatements(request))
-    
-    return result
-
-
 if __name__ == "__main__":
-    # generateFinantialStatementsData()
     generateDataWithYahooAPI()
