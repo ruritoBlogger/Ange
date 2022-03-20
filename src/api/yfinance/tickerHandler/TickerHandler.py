@@ -61,52 +61,38 @@ class TickerHandler:
         try:
             result = func(*args)
             return result
-        except timeout_decorator.TimeoutError:
+        except timeout_decorator.timeout_decorator.TimeoutError:
             print("[handler] yfinance APIからの応答が存在しないため再度実行します")
+            time.sleep(10)
+            return self._retryFuncWhenTimeout(func, args)
+        except ConnectionError:
+            print("[handler] yfinanceのAPIサーバーにアクセスが集中しているため一時休止します(10秒)")
             time.sleep(10)
             return self._retryFuncWhenTimeout(func, args)
 
 
     @timeout_decorator.timeout(120)
     def _setTicker(self, requestBody: str) -> None:
-        try:
-            ticker = yf.Ticker(requestBody) 
-            self._ticker = ticker
-
-        except ConnectionError:
-            print("[setTicker] yfinanceのAPIサーバーにアクセスが集中しているため一時休止します(10秒)")
-            time.sleep(10)
-            self._setTicker(requestBody)
-    
+        ticker = yf.Ticker(requestBody) 
+        self._ticker = ticker
 
     @timeout_decorator.timeout(120)
     def _getBalanceSheet(self) -> pd.DataFrame:
         if CacheList.balanceSheet.value in self._cache:
             return self._cache[CacheList.balanceSheet.value]
         else:
-            try:
-                balanceSheet = self._ticker.balance_sheet
-                self._cache[CacheList.balanceSheet.value] = balanceSheet
-                return balanceSheet
-            except ConnectionError:
-                print("[getBalanceSheet] yfinanceのAPIサーバーにアクセスが集中しているため一時休止します(10秒)")
-                time.sleep(10)
-                return self._getBalanceSheet()
-    
+            balanceSheet = self._ticker.balance_sheet
+            self._cache[CacheList.balanceSheet.value] = balanceSheet
+            return balanceSheet
     
     @timeout_decorator.timeout(120)
     def _getIncomeStatement(self) -> pd.DataFrame:
         if CacheList.incomeStatement.value in self._cache:
             return self._cache[CacheList.incomeStatement.value]
         else:
-            try:
-                incomeStatement = self._ticker.financials
-                self._cache[CacheList.incomeStatement.value] = incomeStatement
-                return incomeStatement
-            except ConnectionError:
-                print("[getIncomeStatement] yfinanceのAPIサーバーにアクセスが集中しているため一時休止します(10秒)")
-                time.sleep(10)
-                return self._getIncomeStatement()
+            incomeStatement = self._ticker.financials
+            self._cache[CacheList.incomeStatement.value] = incomeStatement
+            return incomeStatement
 
 
     @timeout_decorator.timeout(120)
@@ -114,14 +100,9 @@ class TickerHandler:
         if CacheList.cashflow.value in self._cache:
             return self._cache[CacheList.cashflow.value]
         else:
-            try:
-                cashflow = self._ticker.cashflow
-                self._cache[CacheList.cashflow.value] = cashflow
-                return cashflow
-            except ConnectionError:
-                print("[getCashflow] yfinanceのAPIサーバーにアクセスが集中しているため一時休止します(10秒)")
-                time.sleep(10)
-                return self._getCashflow()
+            cashflow = self._ticker.cashflow
+            self._cache[CacheList.cashflow.value] = cashflow
+            return cashflow
 
 
     @timeout_decorator.timeout(120)
@@ -129,14 +110,9 @@ class TickerHandler:
         if CacheList.stockPrice.value in self._cache:
             return self._cache[CacheList.stockPrice.value]
         else:
-            try:
-                stockPriceList = self._ticker.history(period="max")
-                self._cache[CacheList.stockPrice.value] = stockPriceList
-                return stockPriceList
-            except ConnectionError:
-                print("[getStockPrice] yfinanceのAPIサーバーにアクセスが集中しているため一時休止します(10秒)")
-                time.sleep(10)
-                return self._getCashflow()
+            stockPriceList = self._ticker.history(period="max")
+            self._cache[CacheList.stockPrice.value] = stockPriceList
+            return stockPriceList
 
 
     @timeout_decorator.timeout(120)
@@ -144,14 +120,9 @@ class TickerHandler:
         if CacheList.info.value in self._cache:
             return self._cache[CacheList.info.value]
         else:
-            try:
-                info = self._ticker.info
-                self._cache[CacheList.info.value] = info
-                return info
-            except ConnectionError:
-                print("[getInfo] yfinanceのAPIサーバーにアクセスが集中しているため一時休止します(10秒)")
-                time.sleep(10)
-                return self._getCashflow()
+            info = self._ticker.info
+            self._cache[CacheList.info.value] = info
+            return info
 
 
     @timeout_decorator.timeout(120)
@@ -159,14 +130,9 @@ class TickerHandler:
         if CacheList.splits.value in self._cache:
             return self._cache[CacheList.splits.value]
         else:
-            try:
-                splits = self._ticker.splits
-                self._cache[CacheList.splits.value] = splits
-                return splits
-            except ConnectionError:
-                print("[getSplits] yfinanceのAPIサーバーにアクセスが集中しているため一時休止します(10秒)")
-                time.sleep(10)
-                return self._getCashflow()
+            splits = self._ticker.splits
+            self._cache[CacheList.splits.value] = splits
+            return splits
 
 
     def registTicker(self, company: Company) -> None:
