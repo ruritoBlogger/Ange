@@ -159,14 +159,15 @@ def getCompanyStockAmount(handler: TickerHandler, dateList: List[str] ) -> Optio
 
     splits: pd.DataFrame = handler.getSplits()
     stockAmountData: List[Dict[str, int]] = []
+    for targetDate in dateList:
+        stockAmountData.append({targetDate: currentStockAmount})
 
+    # 分割されている場合のみ分割後のデータを反映させる
     for splitDate, splitRate in splits.iteritems():
-        for targetDate in dateList:
+        for i, targetDate in enumerate(dateList):
             if splitDate > datetime.strptime(targetDate, "%Y/%m/%d"):
-                currentStockAmount = currentStockAmount / splitRate
+                stockAmountData[i][targetDate] = currentStockAmount / splitRate
             
-            stockAmountData.append({targetDate: currentStockAmount})
-    
     return stockAmountData
 
 

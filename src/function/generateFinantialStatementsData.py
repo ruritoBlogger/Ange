@@ -73,32 +73,63 @@ def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]
 
     for company in companyList:
 
+        print("{} の情報を生成開始".format(company['name']))
+        fsList: List[FinantialStatements] = getFinantialStatementsList(company['id'])
+        spList: List[StockPrice] = getPriceList(company['id'])
+
+        bsList: List[BalanceSheet] = []
+        for fs in fsList:
+            bsList.append(getBalanceSheetList(company['id'], fs['id']))
+        # FIXME: 邪悪
+        # flatten
+        bsList = list(itertools.chain.from_iterable(bsList))
+
+        cfList: List[Cashflow] = []
+        for fs in fsList:
+            cfList.append(getCashFlowList(company['id'], fs['id']))
+        # flatten
+        cfList = list(itertools.chain.from_iterable(cfList))
+
+        isList: List[IncomeStatement] = []
+        for fs in fsList:
+            isList.append(getIncomeStatementList(company['id'], fs['id']))
+        # flatten
+        isList = list(itertools.chain.from_iterable(isList))
+
+        indexList: List[Index] = []
+        for fs in fsList:
+            indexList.append(getIndexList(company['id'], fs['id']))
+        # flatten
+        indexList = list(itertools.chain.from_iterable(indexList))
+
+        # 既に生成済みの場合はスキップ
+        if( len(indexList) != 0 ):
+            companyListBar.update(1)
+            continue
+
+        # yfinance APIを叩く準備
         handler: yfinance.TickerHandler = yfinance.TickerHandler()
         handler.registTicker(company)
 
         dateList: List[str] = yfinance.getCompanyDate(handler)
         stockAmountList: Optional[List[Dict[str, int]]] = yfinance.getCompanyStockAmount(handler, dateList)
-        # print(stockAmountList)
-
         if stockAmountList is None:
             continue
 
         # 株価データを生成
-        spList: List[StockPrice] = getPriceList(company['id'])
-        if(len(spList) == 0):
-            spRequestList: List[AddStockPriceRequestType] = yfinance.getCompanyStockPrice(handler, company)
+        spRequestList: List[AddStockPriceRequestType] = yfinance.getCompanyStockPrice(handler, company)
 
-            stockPriceBar = tqdm(total = len(spRequestList))
-            stockPriceBar.set_description("{}の株価情報を登録中".format(company['name']))
-            for spRequest in spRequestList:
-                stockPriceBar.update(1)
-                sp = addPrice(spRequest)
-                validateStockPrice(sp)
-                spList.append(sp)
+        stockPriceBar = tqdm(total = len(spRequestList))
+        stockPriceBar.set_description("{}の株価情報を登録中".format(company['name']))
+        for spRequest in spRequestList:
+            stockPriceBar.update(1)
+            sp = addPrice(spRequest)
+            if sp is None:
+                continue
+            validateStockPrice(sp)
+            spList.append(sp)
 
         # 各表のベースとなる財務諸表データを生成
-        fsList: List[FinantialStatements] = getFinantialStatementsList(company['id'])
-
         if(len(fsList) == 0):
             for date in dateList:
                 fs = addFinantialStatements({"companyID": company['id'], "announcementDate": date, "isFiscal": True})
@@ -106,14 +137,6 @@ def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]
                 fsList.append(fs)
         
         # 財務諸表データをベースにしたバランスシートデータを生成
-        bsList: List[BalanceSheet] = []
-        for fs in fsList:
-            bsList.append(getBalanceSheetList(company['id'], fs['id']))
-
-        # FIXME: 邪悪
-        # flatten
-        bsList = list(itertools.chain.from_iterable(bsList))
-
         if(len(bsList) == 0): 
             bsRequestList: List[AddBalanceSheetRequestType] = yfinance.getCompanyBS(handler, fsList, stockAmountList)
             for bsRequest in bsRequestList:
@@ -122,14 +145,6 @@ def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]
                 bsList.append(bs)
         
         # 財務諸表データをベースにしたキャッシュ・フローデータを生成
-        cfList: List[Cashflow] = []
-        for fs in fsList:
-            cfList.append(getCashFlowList(company['id'], fs['id']))
-
-        # FIXME: 邪悪
-        # flatten
-        cfList = list(itertools.chain.from_iterable(cfList))
-
         if(len(cfList) == 0):
             cfRequestList: List[AddCashFlowRequestType] = yfinance.getCompanyCF(handler, fsList)
             for cfRequest in cfRequestList:
@@ -138,14 +153,6 @@ def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]
                 cfList.append(cf)
 
         # 財務諸表データをベースにした損益計算書データを生成
-        isList: List[IncomeStatement] = []
-        for fs in fsList:
-            isList.append(getIncomeStatementList(company['id'], fs['id']))
-
-        # FIXME: 邪悪
-        # flatten
-        isList = list(itertools.chain.from_iterable(isList))
-
         if(len(isList) == 0):
             isRequestList: List[AddIncomeStatementRequestType] = yfinance.getCompanyIS(handler, fsList)
             for isRequest in isRequestList:
@@ -154,14 +161,6 @@ def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]
                 isList.append(istatement)
 
         # 財務諸表データをベースにした指標データを生成
-        indexList: List[Index] = []
-        for fs in fsList:
-            indexList.append(getIndexList(company['id'], fs['id']))
-
-        # FIXME: 邪悪
-        # flatten
-        indexList = list(itertools.chain.from_iterable(indexList))
-
         if(len(indexList) == 0):
             indexRequestList: List[AddIndexRequestType] = calcIndex(spList, fsList, bsList, cfList, isList)
             for indexRequest in indexRequestList:
