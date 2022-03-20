@@ -61,7 +61,7 @@ class TickerHandler:
         try:
             result = func(*args)
             return result
-        except TimeoutError:
+        except timeout_decorator.TimeoutError:
             print("[handler] yfinance APIからの応答が存在しないため再度実行します")
             time.sleep(10)
             return self._retryFuncWhenTimeout(func, args)
