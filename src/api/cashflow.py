@@ -1,5 +1,5 @@
 import json
-from typing import List
+from typing import List, Optional
 import requests
 import sys
 import os
@@ -9,9 +9,14 @@ from domain import Cashflow
 from api.type import AddCashFlowRequestType
 
 
-def addCashFlow(companyID: int, props: AddCashFlowRequestType, isPrintLog: bool = False) -> Cashflow:
+def addCashFlow(companyID: int, props: AddCashFlowRequestType, isPrintLog: bool = False) -> Optional[Cashflow]:
     url = "http://localhost:3000/company/{}/finantial/{}/cashflow".format(companyID, props["finantialID"])
-    result = requests.post(url, json=({"props": props}))
+    try:
+        result = requests.post(url, json=({"props": props}))
+    except requests.exceptions.InvalidJSONError:
+        # NOTE: いずれかの情報がyfinance APIから取得出来ていない場合
+        return None
+
     cashflow: Cashflow = json.loads(result.content.decode('utf-8'))
     if isPrintLog:
         print("[addCashFlow] result: {}".format(cashflow))

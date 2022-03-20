@@ -141,6 +141,8 @@ def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]
             bsRequestList: List[AddBalanceSheetRequestType] = yfinance.getCompanyBS(handler, fsList, stockAmountList)
             for bsRequest in bsRequestList:
                 bs = addBalanceSheet(company['id'], bsRequest)
+                if bs is None:
+                    continue
                 validateBS(bs)
                 bsList.append(bs)
         
@@ -149,6 +151,8 @@ def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]
             cfRequestList: List[AddCashFlowRequestType] = yfinance.getCompanyCF(handler, fsList)
             for cfRequest in cfRequestList:
                 cf = addCashFlow(company['id'], cfRequest)
+                if cf is None:
+                    continue
                 validateCF(cf)
                 cfList.append(cf)
 
@@ -157,6 +161,8 @@ def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]
             isRequestList: List[AddIncomeStatementRequestType] = yfinance.getCompanyIS(handler, fsList)
             for isRequest in isRequestList:
                 istatement = addIncomeStatement(company['id'], isRequest)
+                if istatement is None:
+                    continue
                 validateIS(istatement)
                 isList.append(istatement)
 

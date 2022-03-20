@@ -1,5 +1,5 @@
 import json
-from typing import List
+from typing import List, Optional
 import requests
 import sys
 import os
@@ -9,9 +9,14 @@ from domain import BalanceSheet
 from api.type import AddBalanceSheetRequestType
 
 
-def addBalanceSheet(companyID: int, props: AddBalanceSheetRequestType, isPrintLog: bool = False) -> BalanceSheet:
+def addBalanceSheet(companyID: int, props: AddBalanceSheetRequestType, isPrintLog: bool = False) -> Optional[BalanceSheet]:
     url = "http://localhost:3000/company/{}/finantial/{}/sheet".format(companyID, props["finantialID"])
-    result = requests.post(url, json=({"props": props}))
+    try:
+        result = requests.post(url, json=({"props": props}))
+    except requests.exceptions.InvalidJSONError:
+        # NOTE: いずれかの情報がyfinance APIから取得出来ていない場合
+        return None
+
     balanceSheet: BalanceSheet = json.loads(result.content.decode('utf-8'))
     if isPrintLog:
         print("[addBalanceSheet] result: {}".format(balanceSheet))
