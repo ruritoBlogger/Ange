@@ -43,17 +43,35 @@ def calcIndex(spList: List[StockPrice], fsList: List[FinantialStatements], bsLis
             continue
 
         indexRequest: AddIndexRequestType = { "finantialID": finantialStatement['id'] }
-        indexRequest['capitalAdequacyRatio'] = relatedBS['netAssets'] / relatedBS['totalAssets']
-        indexRequest['roe'] = relatedIS['netIncome'] / relatedBS['netAssets'] * 100
-        indexRequest['roa'] = relatedIS['netIncome'] / relatedBS['totalAssets'] * 100
+        try:
+            indexRequest['capitalAdequacyRatio'] = relatedBS['netAssets'] / relatedBS['totalAssets']
+        except ZeroDivisionError:
+            indexRequest['capitalAdequacyRatio'] = 0
+        try:
+            indexRequest['roe'] = relatedIS['netIncome'] / relatedBS['netAssets'] * 100
+        except ZeroDivisionError:
+            indexRequest['roe'] = 0
+        try:
+            indexRequest['roa'] = relatedIS['netIncome'] / relatedBS['totalAssets'] * 100
+        except ZeroDivisionError:
+            indexRequest['roa'] = 0
 
         relatedSP: StockPrice = choiceStockPriceWithAnnouncementDate(finantialStatement['announcementDate'], spList)
         if relatedSP is None:
             continue
 
-        indexRequest['eps'] = relatedBS['printedNum'] / relatedIS['netIncome']
-        indexRequest['per'] = relatedSP['closingPrice'] * indexRequest['eps']
-        indexRequest['pbr'] = relatedSP['closingPrice'] * relatedBS['printedNum'] / relatedBS['netAssets']
+        try:
+            indexRequest['eps'] = relatedBS['printedNum'] / relatedIS['netIncome']
+        except ZeroDivisionError:
+            indexRequest['eps'] = 0
+        try:
+            indexRequest['per'] = relatedSP['closingPrice'] * indexRequest['eps']
+        except ZeroDivisionError:
+            indexRequest['per'] = 0
+        try:
+            indexRequest['pbr'] = relatedSP['closingPrice'] * relatedBS['printedNum'] / relatedBS['netAssets']
+        except ZeroDivisionError:
+            indexRequest['pbr'] = 0
 
         indexRequestList.append(indexRequest)
     
