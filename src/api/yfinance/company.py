@@ -16,14 +16,19 @@ from util import convertDateFromJS
 def convertDate(target: str) -> str:
     return target.strftime("%Y/%m/%d")
 
+
 # TODO: 4半期毎のデータも取得出来るようにする
 
-def getCompanyDate(handler: TickerHandler) -> List[str]:
+def getCompanyDate(handler: TickerHandler) -> Optional[List[str]]:
     balanceSheet: pd.DataFrame = handler.getBalanceSheet()
 
     dateList: List[str] = []
     for date, _ in balanceSheet.iteritems():
-        dateList.append(convertDate(date))
+        try:
+            dateList.append(convertDate(date))
+        except AttributeError:
+            # NOTE: balanceSheetの中に株価情報が詰まっている場合向け
+            return None
 
     return dateList
 
