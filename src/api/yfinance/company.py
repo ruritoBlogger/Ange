@@ -43,10 +43,15 @@ def getCompanyBS(handler: TickerHandler, finantialStatements: List[FinantialStat
             raise StopIteration
 
         balanceSheet: AddBalanceSheetRequestType = { "finantialID":  relatedFS["id"]}
-        balanceSheet["totalAssets"] = item["Total Assets"]
-        balanceSheet["netAssets"] = item["Total Assets"] - item["Total Liab"]
-        balanceSheet["capitalStock"] = item["Common Stock"]
-        balanceSheet["profitSurplus"] = item["Retained Earnings"]
+        try:
+            balanceSheet["totalAssets"] = item["Total Assets"]
+            balanceSheet["netAssets"] = item["Total Assets"] - item["Total Liab"]
+            balanceSheet["capitalStock"] = item["Common Stock"]
+            balanceSheet["profitSurplus"] = item["Retained Earnings"]
+        except KeyError:
+            # NOTE: 企業によっては一部情報が欠損しているためこのような処理をする
+            # TODO: 欠損値を許容出来るようにしたい
+            continue
 
         """
         stockAmountListという以下のような株式発行数の情報のうち
@@ -84,9 +89,12 @@ def getCompanyCF(handler: TickerHandler, finantialStatements: List[FinantialStat
             raise StopIteration
 
         cashflow: AddCashFlowRequestType = { "finantialID":  relatedFS["id"]}
-        cashflow["salesCF"] = item["Change To Operating Activities"]
-        cashflow["investmentCF"] = item["Total Cashflows From Investing Activities"]
-        cashflow["financialCF"] = item["Total Cash From Financing Activities"]
+        try:
+            cashflow["salesCF"] = item["Change To Operating Activities"]
+            cashflow["investmentCF"] = item["Total Cashflows From Investing Activities"]
+            cashflow["financialCF"] = item["Total Cash From Financing Activities"]
+        except KeyError:
+            continue
 
         result.append(cashflow)
 
@@ -108,10 +116,13 @@ def getCompanyIS(handler: TickerHandler, finantialStatements: List[FinantialStat
             raise StopIteration
 
         incomeStatement: AddIncomeStatementRequestType = { "finantialID":  relatedFS["id"]}
-        incomeStatement["totalSales"] = item["Cost Of Revenue"] + item["Gross Profit"]
-        incomeStatement["operatingIncome"] = item["Operating Income"]
-        incomeStatement["ordinaryIncome"] = item["Total Revenue"]
-        incomeStatement["netIncome"] = item["Net Income"]
+        try:
+            incomeStatement["totalSales"] = item["Cost Of Revenue"] + item["Gross Profit"]
+            incomeStatement["operatingIncome"] = item["Operating Income"]
+            incomeStatement["ordinaryIncome"] = item["Total Revenue"]
+            incomeStatement["netIncome"] = item["Net Income"]
+        except KeyError:
+            continue
 
         result.append(incomeStatement)
     
@@ -123,11 +134,14 @@ def getCompanyStockPrice(handler: TickerHandler, company: Company) -> List[AddSt
 
     for date, item in stockPrice.iterrows():
         stockPrice: AddStockPriceRequestType = { "companyID": company["id"]}
-        stockPrice["openingPrice"] = item["Open"]
-        stockPrice["closingPrice"] = item["Close"]
-        stockPrice["highPrice"] = item["High"]
-        stockPrice["lowPrice"] = item["Low"]
-        stockPrice["date"] = convertDate(date)
+        try:
+            stockPrice["openingPrice"] = item["Open"]
+            stockPrice["closingPrice"] = item["Close"]
+            stockPrice["highPrice"] = item["High"]
+            stockPrice["lowPrice"] = item["Low"]
+            stockPrice["date"] = convertDate(date)
+        except KeyError:
+            continue
         result.append(stockPrice)
     
     return result
