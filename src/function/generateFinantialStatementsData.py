@@ -111,7 +111,10 @@ def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]
         handler: yfinance.TickerHandler = yfinance.TickerHandler()
         handler.registTicker(company)
 
-        dateList: List[str] = yfinance.getCompanyDate(handler)
+        dateList: Optional[List[str]] = yfinance.getCompanyDate(handler)
+        if dateList is None:
+            continue
+
         stockAmountList: Optional[List[Dict[str, int]]] = yfinance.getCompanyStockAmount(handler, dateList)
         if stockAmountList is None:
             continue
