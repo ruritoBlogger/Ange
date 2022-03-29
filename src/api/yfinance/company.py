@@ -182,11 +182,17 @@ def getCompanyStockAmount(handler: TickerHandler, dateList: List[str] ) -> Optio
         stockAmountData.append({targetDate: currentStockAmount})
 
     # 分割されている場合のみ分割後のデータを反映させる
-    for splitDate, splitRate in splits.iteritems():
-        for i, targetDate in enumerate(dateList):
-            if splitDate > datetime.strptime(targetDate, "%Y/%m/%d"):
-                stockAmountData[i][targetDate] = currentStockAmount / splitRate
-            
+    try:
+        for splitDate, splitRate in splits.iteritems():
+            for i, targetDate in enumerate(dateList):
+                if splitDate > datetime.strptime(targetDate, "%Y/%m/%d"):
+                    stockAmountData[i][targetDate] = currentStockAmount / splitRate
+    except AttributeError:
+        # NOTE: No data found for this date range, symbol may be delisted
+        #       となる場合があるっぽく、その場合の処理
+        #       データが取得出来ない場合はデフォルトの値を返却する
+        pass
+
     return stockAmountData
 
 
