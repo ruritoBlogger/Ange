@@ -5,7 +5,7 @@ import os
 import time
 import pandas as pd
 import yfinance as yf
-import timeout_decorator
+from timeout_decorator import timeout
 
 # NOTE: プロジェクトのrootにパスを通しておく
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
@@ -61,22 +61,23 @@ class TickerHandler:
         try:
             result = func(*args)
             return result
-        except timeout_decorator.timeout_decorator.TimeoutError:
-            print("[handler] yfinance APIからの応答が存在しないため再度実行します")
-            time.sleep(10)
-            return self._retryFuncWhenTimeout(func, args)
         except ConnectionError:
             print("[handler] yfinanceのAPIサーバーにアクセスが集中しているため一時休止します(10秒)")
             time.sleep(10)
             return self._retryFuncWhenTimeout(func, args)
+        except:
+            # NOTE: 本当はtimeout_decorator.TimeoutErrorをキャッチしたいが、何故か出来ないので
+            print("[handler] yfinance APIからの応答が存在しないため再度実行します")
+            time.sleep(10)
+            return self._retryFuncWhenTimeout(func, args)
 
 
-    @timeout_decorator.timeout(120)
+    @timeout(120)
     def _setTicker(self, requestBody: str) -> None:
         ticker = yf.Ticker(requestBody) 
         self._ticker = ticker
 
-    @timeout_decorator.timeout(120)
+    @timeout(120)
     def _getBalanceSheet(self) -> pd.DataFrame:
         if CacheList.balanceSheet.value in self._cache:
             return self._cache[CacheList.balanceSheet.value]
@@ -85,7 +86,7 @@ class TickerHandler:
             self._cache[CacheList.balanceSheet.value] = balanceSheet
             return balanceSheet
     
-    @timeout_decorator.timeout(120)
+    @timeout(120)
     def _getIncomeStatement(self) -> pd.DataFrame:
         if CacheList.incomeStatement.value in self._cache:
             return self._cache[CacheList.incomeStatement.value]
@@ -95,7 +96,7 @@ class TickerHandler:
             return incomeStatement
 
 
-    @timeout_decorator.timeout(120)
+    @timeout(120)
     def _getCashflow(self) -> pd.DataFrame:
         if CacheList.cashflow.value in self._cache:
             return self._cache[CacheList.cashflow.value]
@@ -105,7 +106,7 @@ class TickerHandler:
             return cashflow
 
 
-    @timeout_decorator.timeout(120)
+    @timeout(120)
     def _getStockPrice(self) -> pd.DataFrame:
         if CacheList.stockPrice.value in self._cache:
             return self._cache[CacheList.stockPrice.value]
@@ -115,7 +116,7 @@ class TickerHandler:
             return stockPriceList
 
 
-    @timeout_decorator.timeout(120)
+    @timeout(120)
     def _getInfo(self) -> Dict[str, Any]:
         if CacheList.info.value in self._cache:
             return self._cache[CacheList.info.value]
@@ -125,7 +126,7 @@ class TickerHandler:
             return info
 
 
-    @timeout_decorator.timeout(120)
+    @timeout(120)
     def _getSplits(self) -> pd.DataFrame:
         if CacheList.splits.value in self._cache:
             return self._cache[CacheList.splits.value]
