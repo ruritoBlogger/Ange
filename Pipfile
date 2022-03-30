@@ -12,6 +12,7 @@ openpyxl = "*"
 xlrd = "*"
 tqdm = "*"
 timeout-decorator = "*"
+uwsgi = "*"
 
 [dev-packages]
 
