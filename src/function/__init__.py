@@ -1,3 +1,4 @@
 from .generateIndustryData import generateIndustryData
 from .generateCompanyData import generateCompanyData
+from .generateFinantialStatementsData import generateDataWithYahooAPI
 from .downloadCompanyList import downloadCompanyList

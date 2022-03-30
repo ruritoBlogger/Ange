@@ -1,3 +1,3 @@
 #!/bin/sh
 export FLASK_APP=./index.py
-pipenv run dev
+pipenv run flask

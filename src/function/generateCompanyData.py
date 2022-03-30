@@ -3,7 +3,7 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from downloadCompanyList import downloadCompanyList
+from function import downloadCompanyList
 from api import getIndustryList, addCompany
 from api.type import AddCompanyRequestType
 from domain import Industry
