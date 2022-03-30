@@ -78,7 +78,7 @@ def calcIndex(spList: List[StockPrice], fsList: List[FinantialStatements], bsLis
     return indexRequestList
 
 
-def generateDataWithYahooAPI() -> List[Tuple[FinantialStatements, BalanceSheet]]:
+def generateDataWithYahooAPI() -> None:
     companyList: List[Company] = getCompanyList()
     companyListBar = tqdm(total = len(companyList))
     companyListBar.set_description('東証一部に上場している企業情報を生成中')
