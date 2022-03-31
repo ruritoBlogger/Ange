@@ -21,7 +21,7 @@ python-dotenv = "*"
 python_version = "3.7"
 
 [scripts]
-flask = "flask run"
+flask = "python index.py"
 dev = "sh bin/bootstrap.sh"
 industry = "python src/function/generateIndustryData.py"
 company = "python src/function/generateCompanyData.py"
