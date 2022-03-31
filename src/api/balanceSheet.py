@@ -8,9 +8,11 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from domain import BalanceSheet
 from api.type import AddBalanceSheetRequestType
 
+HOST = os.getenv("TOKO_HOST")
+PORT = os.getenv("TOKO_PORT")
 
 def addBalanceSheet(companyID: int, props: AddBalanceSheetRequestType, isPrintLog: bool = False) -> Optional[BalanceSheet]:
-    url = "http://localhost:3000/company/{}/finantial/{}/sheet".format(companyID, props["finantialID"])
+    url = "{}:{}/company/{}/finantial/{}/sheet".format(HOST, PORT, companyID, props["finantialID"])
     try:
         result = requests.post(url, json=({"props": props}))
     except requests.exceptions.InvalidJSONError:
@@ -23,7 +25,7 @@ def addBalanceSheet(companyID: int, props: AddBalanceSheetRequestType, isPrintLo
     return balanceSheet
 
 def getBalanceSheetList(companyID: int, finantialID: int, isPrintLog: bool = False) -> List[BalanceSheet]:
-    url = "http://localhost:3000/company/{}/finantial/{}/sheet".format(companyID, finantialID)
+    url = "{}:{}/company/{}/finantial/{}/sheet".format(HOST, PORT, companyID, finantialID)
     result = requests.get(url)
     balanceSheetList: List[BalanceSheet] = json.loads(result.content.decode('utf-8'))
     if isPrintLog:
@@ -32,7 +34,7 @@ def getBalanceSheetList(companyID: int, finantialID: int, isPrintLog: bool = Fal
 
 
 def getBalanceSheet(companyID: int, finantialID: int, sheetID: int, isPrintLog: bool = False) -> BalanceSheet:
-    url = "http://localhost:3000/company/{}/finantial/{}/sheet/{}".format(companyID, finantialID, sheetID)
+    url = "{}:{}/company/{}/finantial/{}/sheet/{}".format(HOST, PORT, companyID, finantialID, sheetID)
     result = requests.get(url)
     balanceSheet: BalanceSheet = json.loads(result.content.decode('utf-8'))
     if isPrintLog:

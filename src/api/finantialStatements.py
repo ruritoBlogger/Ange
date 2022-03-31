@@ -8,9 +8,11 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from domain import FinantialStatements
 from api.type import AddFinantialStatementsRequstType
 
+HOST = os.getenv("TOKO_HOST")
+PORT = os.getenv("TOKO_PORT")
 
 def addFinantialStatements(props: AddFinantialStatementsRequstType, isPrintLog: bool = False) -> FinantialStatements:
-    url = "http://localhost:3000/company/{}/finantial".format(props["companyID"])
+    url = "{}:{}/company/{}/finantial".format(HOST, PORT, props["companyID"])
     result = requests.post(url, json=({"props": props}))
     finantialStatements: FinantialStatements = json.loads(result.content.decode('utf-8'))
     if isPrintLog:
@@ -19,7 +21,7 @@ def addFinantialStatements(props: AddFinantialStatementsRequstType, isPrintLog: 
     return finantialStatements
 
 def getFinantialStatementsList(companyID: int, isPrintLog: bool = False) -> List[FinantialStatements]:
-    url = "http://localhost:3000/company/{}/finantial".format(companyID)
+    url = "{}:{}/company/{}/finantial".format(HOST, PORT, companyID)
     result = requests.get(url)
     finantialStatementsList: List[FinantialStatements] = json.loads(result.content.decode('utf-8'))
     if isPrintLog:
@@ -28,7 +30,7 @@ def getFinantialStatementsList(companyID: int, isPrintLog: bool = False) -> List
 
 
 def getFinantialStatements(companyID: int, finantialID: int, isPrintLog: bool = False) -> FinantialStatements:
-    url = "http://localhost:3000/company/{}/finantial/{}".format(companyID, finantialID)
+    url = "{}:{}/company/{}/finantial/{}".format(HOST, PORT, companyID, finantialID)
     result = requests.get(url)
     finantialStatements: FinantialStatements = json.loads(result.content.decode('utf-8'))
     if isPrintLog:

@@ -8,9 +8,11 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from domain import Index
 from api.type import AddIndexRequestType
 
+HOST = os.getenv("TOKO_HOST")
+PORT = os.getenv("TOKO_PORT")
 
 def addIndex(companyID: int, props: AddIndexRequestType, isPrintLog: bool = False) -> Index:
-    url = "http://localhost:3000/company/{}/finantial/{}/index".format(companyID, props["finantialID"])
+    url = "{}:{}/company/{}/finantial/{}/index".format(HOST, PORT, companyID, props["finantialID"])
     result = requests.post(url, json=({"props": props}))
     index: Index = json.loads(result.content.decode('utf-8'))
     if isPrintLog:
@@ -18,7 +20,7 @@ def addIndex(companyID: int, props: AddIndexRequestType, isPrintLog: bool = Fals
     return index
 
 def getIndexList(companyID: int, finantialID: int, isPrintLog: bool = False) -> List[Index]:
-    url = "http://localhost:3000/company/{}/finantial/{}/index".format(companyID, finantialID)
+    url = "{}:{}/company/{}/finantial/{}/index".format(HOST, PORT, companyID, finantialID)
     result = requests.get(url)
     indexList: List[Index] = json.loads(result.content.decode('utf-8'))
     if isPrintLog:
@@ -27,7 +29,7 @@ def getIndexList(companyID: int, finantialID: int, isPrintLog: bool = False) -> 
 
 
 def getIndex(companyID: int, finantialID: int, indexID: int, isPrintLog: bool = False) -> Index:
-    url = "http://localhost:3000/company/{}/finantial/{}/index/{}".format(companyID, finantialID, indexID)
+    url = "{}:{}/company/{}/finantial/{}/index/{}".format(HOST, PORT, companyID, finantialID, indexID)
     result = requests.get(url)
     index: Index = json.loads(result.content.decode('utf-8'))
     if isPrintLog:
