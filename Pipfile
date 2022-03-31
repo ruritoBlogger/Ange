@@ -23,6 +23,7 @@ python_version = "3.7"
 [scripts]
 flask = "python index.py"
 dev = "sh bin/bootstrap.sh"
+prod = "bash bin/bootstrap.prod.sh"
 industry = "python src/function/generateIndustryData.py"
 company = "python src/function/generateCompanyData.py"
 sheets = "python src/function/generateFinantialStatementsData.py"
