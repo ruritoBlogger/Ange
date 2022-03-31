@@ -8,9 +8,11 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from domain import Industry
 from api.type import AddIndustryRequestType
 
+HOST = os.getenv("TOKO_HOST")
+PORT = os.getenv("TOKO_PORT")
 
 def addIndustry(props: AddIndustryRequestType, isPrintLog: bool = False) -> Industry:
-    url = "http://localhost:3000/industry"
+    url = "{}:{}/industry".format(HOST, PORT)
     result = requests.post(url, json=({"props": props}))
     industry: Industry = json.loads(result.content.decode('utf-8'))
     if isPrintLog:
@@ -19,7 +21,7 @@ def addIndustry(props: AddIndustryRequestType, isPrintLog: bool = False) -> Indu
 
 
 def getIndustryList(isPrintLog: bool = False) -> List[Industry]:
-    url = "http://localhost:3000/industry"
+    url = "{}:{}/industry".format(HOST, PORT)
     result = requests.get(url)
     industryList: List[Industry] = json.loads(result.content.decode('utf-8'))
     if isPrintLog:

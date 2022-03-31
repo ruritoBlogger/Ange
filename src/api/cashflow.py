@@ -8,9 +8,11 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from domain import Cashflow
 from api.type import AddCashFlowRequestType
 
+HOST = os.getenv("TOKO_HOST")
+PORT = os.getenv("TOKO_PORT")
 
 def addCashFlow(companyID: int, props: AddCashFlowRequestType, isPrintLog: bool = False) -> Optional[Cashflow]:
-    url = "http://localhost:3000/company/{}/finantial/{}/cashflow".format(companyID, props["finantialID"])
+    url = "{}:{}/company/{}/finantial/{}/cashflow".format(HOST, PORT, companyID, props["finantialID"])
     try:
         result = requests.post(url, json=({"props": props}))
     except requests.exceptions.InvalidJSONError:
@@ -23,7 +25,7 @@ def addCashFlow(companyID: int, props: AddCashFlowRequestType, isPrintLog: bool 
     return cashflow
 
 def getCashFlowList(companyID: int, finantialID: int, isPrintLog: bool = False) -> List[Cashflow]:
-    url = "http://localhost:3000/company/{}/finantial/{}/cashflow".format(companyID, finantialID)
+    url = "{}:{}/company/{}/finantial/{}/cashflow".format(HOST, PORT, companyID, finantialID)
     result = requests.get(url)
     cashflowList: List[Cashflow] = json.loads(result.content.decode('utf-8'))
     if isPrintLog:
@@ -32,7 +34,7 @@ def getCashFlowList(companyID: int, finantialID: int, isPrintLog: bool = False) 
 
 
 def getCashFlow(companyID: int, finantialID: int, cashID: int, isPrintLog: bool = False) -> Cashflow:
-    url = "http://localhost:3000/company/{}/finantial/{}/cashflow/{}".format(companyID, finantialID, cashID)
+    url = "{}:{}/company/{}/finantial/{}/cashflow/{}".format(HOST, PORT, companyID, finantialID, cashID)
     result = requests.get(url)
     cashflow: Cashflow = json.loads(result.content.decode('utf-8'))
     if isPrintLog:

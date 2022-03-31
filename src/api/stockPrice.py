@@ -8,9 +8,11 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from domain import StockPrice
 from api.type import AddStockPriceRequestType
 
+HOST = os.getenv("TOKO_HOST")
+PORT = os.getenv("TOKO_PORT")
 
 def addPrice(props: AddStockPriceRequestType, isPrintLog: bool = False) -> Optional[StockPrice]:
-    url = "http://localhost:3000/company/{}/stock".format(props["companyID"])
+    url = "{}:{}/company/{}/stock".format(HOST, PORT, props["companyID"])
     try:
         result = requests.post(url, json=({"props": props}))
     except requests.exceptions.InvalidJSONError:
@@ -23,7 +25,7 @@ def addPrice(props: AddStockPriceRequestType, isPrintLog: bool = False) -> Optio
     return price
 
 def getPriceList(companyID: int, isPrintLog: bool = False) -> List[StockPrice]:
-    url = "http://localhost:3000/company/{}/stock".format(companyID)
+    url = "{}:{}/company/{}/stock".format(HOST, PORT, companyID)
     result = requests.get(url)
     priceList: List[StockPrice] = json.loads(result.content.decode('utf-8'))
     if isPrintLog:
@@ -32,7 +34,7 @@ def getPriceList(companyID: int, isPrintLog: bool = False) -> List[StockPrice]:
 
 
 def getPrice(companyID: int, id: int, isPrintLog: bool = False) -> StockPrice:
-    url = "http://localhost:3000/company/{}/stock/{}".format(companyID, id)
+    url = "{}:{}/company/{}/stock/{}".format(HOST, PORT, companyID, id)
     result = requests.get(url)
     price: StockPrice = json.loads(result.content.decode('utf-8'))
     if isPrintLog:
