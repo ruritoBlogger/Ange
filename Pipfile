@@ -13,6 +13,7 @@ xlrd = "*"
 tqdm = "*"
 timeout-decorator = "*"
 uwsgi = "*"
+python-dotenv = "*"
 
 [dev-packages]
 
