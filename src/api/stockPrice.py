@@ -8,7 +8,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from domain import StockPrice
 from api.type import AddStockPriceRequestType
 
-HOST = os.getenv("TOKO_HOST")
+HOST = os.getenv("TOKO_URL")
 PORT = os.getenv("TOKO_PORT")
 
 def addPrice(props: AddStockPriceRequestType, isPrintLog: bool = False) -> Optional[StockPrice]:
