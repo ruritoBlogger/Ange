@@ -14,6 +14,7 @@ tqdm = "*"
 timeout-decorator = "*"
 uwsgi = "*"
 python-dotenv = "*"
+flask-cors = "*"
 
 [dev-packages]
 

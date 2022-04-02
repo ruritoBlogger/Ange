@@ -1,5 +1,6 @@
 from codecs import getencoder
 from flask import Flask, jsonify
+from flask_cors import CORS
 from dotenv import load_dotenv
 import os
 
@@ -7,7 +8,7 @@ from src.function import generateIndustryData, generateCompanyData, generateData
 
 load_dotenv()
 app = Flask(__name__)
-
+CORS(app)
 
 @app.route("/")
 def hello_world():
@@ -31,6 +32,12 @@ def generate_finantial_statements():
     generateDataWithYahooAPI()
     return jsonify({'message': 'done'}), 200
 
+
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+    return response
 
 if __name__ == "__main__":
     HOST = os.getenv("ANGE_HOST")
