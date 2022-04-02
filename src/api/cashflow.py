@@ -8,7 +8,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from domain import Cashflow
 from api.type import AddCashFlowRequestType
 
-HOST = os.getenv("TOKO_HOST")
+HOST = os.getenv("TOKO_URL")
 PORT = os.getenv("TOKO_PORT")
 
 def addCashFlow(companyID: int, props: AddCashFlowRequestType, isPrintLog: bool = False) -> Optional[Cashflow]:
