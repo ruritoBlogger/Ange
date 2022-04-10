@@ -42,4 +42,5 @@ def after_request(response):
 if __name__ == "__main__":
     HOST = os.getenv("ANGE_HOST")
     PORT = os.getenv("ANGE_PORT")
-    app.run(host=HOST, port=PORT)
+    # NOTE: 別threadで動作させようとするとyfinanceAPI側がバグる
+    app.run(host=HOST, port=PORT, use_reloader=False, threaded=False)
