@@ -48,31 +48,30 @@ class TickerHandler:
         self._cache = {}
 
 
-    def _retryFuncWhenTimeout(self, func: Callable[[], Union[pd.DataFrame, Dict[str, Any]]], *args) -> Union[pd.DataFrame, Dict[str, Any]]:
+    def _retryFuncWhenTimeout(self, func: Callable[[], Union[pd.DataFrame, Dict[str, Any]]]) -> Union[pd.DataFrame, Dict[str, Any]]:
         """yfinanceのAPIを叩く, またタイムアウトした際はもう一度処理を挟む
 
         Args:
             target (Callable[[Any], Any]): 叩きたい関数
-            args (Tuple[Any]): 叩きたい関数に渡す引数
 
         Returns:
             Any: 関数の結果
         """
         try:
-            result = func(*args)
+            result = func()
             return result
         except ConnectionError:
             print("[handler] yfinanceのAPIサーバーにアクセスが集中しているため一時休止します(10秒)")
             time.sleep(10)
-            return self._retryFuncWhenTimeout(func, args)
-        except:
+            return self._retryFuncWhenTimeout(func)
+        except Exception as err:
             # NOTE: 本当はtimeout_decorator.TimeoutErrorをキャッチしたいが、何故か出来ないので
             print("[handler] yfinance APIからの応答が存在しないため再度実行します")
+            print("[handler] error log: {}".format(err))
             time.sleep(10)
-            return self._retryFuncWhenTimeout(func, args)
+            return self._retryFuncWhenTimeout(func)
 
 
-    @timeout(120)
     def _setTicker(self, requestBody: str) -> None:
         ticker = yf.Ticker(requestBody) 
         self._ticker = ticker
@@ -140,7 +139,7 @@ class TickerHandler:
         self._company = company
         requestBody = "{}.T".format(company["identificationCode"])
 
-        self._retryFuncWhenTimeout(self._setTicker, requestBody)
+        self._setTicker(requestBody)
 
 
     def getBalanceSheet(self) -> pd.DataFrame:
