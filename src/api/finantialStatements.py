@@ -8,7 +8,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from domain import FinantialStatements
 from api.type import AddFinantialStatementsRequstType
 
-HOST = os.getenv("TOKO_URL")
+HOST = os.getenv("TOKO_HOST")
 PORT = os.getenv("TOKO_PORT")
 
 def addFinantialStatements(props: AddFinantialStatementsRequstType, isPrintLog: bool = False) -> FinantialStatements:

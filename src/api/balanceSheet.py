@@ -8,7 +8,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from domain import BalanceSheet
 from api.type import AddBalanceSheetRequestType
 
-HOST = os.getenv("TOKO_URL")
+HOST = os.getenv("TOKO_HOST")
 PORT = os.getenv("TOKO_PORT")
 
 def addBalanceSheet(companyID: int, props: AddBalanceSheetRequestType, isPrintLog: bool = False) -> Optional[BalanceSheet]:

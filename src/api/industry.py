@@ -8,7 +8,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from domain import Industry
 from api.type import AddIndustryRequestType
 
-HOST = os.getenv("TOKO_URL")
+HOST = os.getenv("TOKO_HOST")
 PORT = os.getenv("TOKO_PORT")
 
 def addIndustry(props: AddIndustryRequestType, isPrintLog: bool = False) -> Industry:
