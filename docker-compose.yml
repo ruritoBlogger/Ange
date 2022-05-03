@@ -1,0 +1,16 @@
+version: '3'
+services:
+  ange:
+    build:
+      context: .
+    volumes:
+      - ./:/Ange
+    command: pipenv run dev
+    networks:
+      - common_link
+    ports:
+      - "5000:5000"
+
+networks:
+  common_link:
+    external: true
